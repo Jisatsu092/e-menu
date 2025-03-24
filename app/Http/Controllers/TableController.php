@@ -7,56 +7,115 @@ use Illuminate\Http\Request;
 
 class TableController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $tables = Table::paginate(5);
-        return view('page.table.index', compact('tables'));
+        try {
+            $search = request('search');
+            $entries = request('entries', 5);
+
+            $tables = Table::when($search, function ($query) use ($search) {
+                $query->where('number', 'like', "%$search%");
+            })
+            ->paginate($entries)
+            ->withQueryString();
+
+            return view('page.table.index', [
+                'tables' => $tables,
+                'search' => $search,
+                'entries' => $entries
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('error.index')->with('error_message', 'Error: ' . $e->getMessage());
+        }
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        $data = [
-            'number' => $request->number,
-            'status' => 'available'
-        ];
+        try {
+            $data = [
+                'number' => $request->input('number'),
+                'status' => 'available',
+            ];
 
-        Table::create($data);
-        return redirect()->route('table.index')->with('success', 'Data meja berhasil ditambahkan');
+            // Validasi input
+            $request->validate([
+                'number' => 'required|unique:tables|max:255',
+            ]);
+
+            Table::create($data);
+
+            return redirect()
+                ->route('table.index')
+                ->with('message_insert', 'Data meja berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('error.index')
+                ->with('error_message', 'Terjadi kesalahan saat menambahkan data meja: ' . $e->getMessage());
+        }
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
     {
-        $table = Table::findOrFail($id);
-        
-        $data = [
-            'number' => $request->number,
-            'status' => $request->status
-        ];
+        try {
+            $data = [
+                'number' => $request->input('number'),
+                'status' => $request->input('status', 'available'), // Default status jika tidak diisi
+            ];
 
-        $table->update($data);
-        return redirect()->route('table.index')->with('success', 'Data meja berhasil diupdate');
+            // Validasi input
+            $request->validate([
+                'number' => 'required|max:255|unique:tables,number,' . $id,
+            ]);
+
+            $table = Table::findOrFail($id);
+            $table->update($data);
+
+            return redirect()
+                ->route('table.index')
+                ->with('message_update', 'Data meja berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('error.index')
+                ->with('error_message', 'Terjadi kesalahan saat memperbarui data meja: ' . $e->getMessage());
+        }
     }
 
-    public function destroy($id)
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
     {
         try {
             $table = Table::findOrFail($id);
             $table->delete();
-            return response()->json(['success' => true]);
+
+            return back()->with('message_delete', 'Data meja berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return back()->with('error_message', 'Terjadi kesalahan saat menghapus data meja: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Check if a table number exists.
+     */
     public function checkNumber($number, Request $request)
     {
         $id = $request->query('id');
-        $query = Table::where('number', $number);
-        
-        if ($id) {
-            $query->where('id', '!=', $id);
-        }
+        $exists = Table::where('number', $number)
+            ->when($id, function ($query) use ($id) {
+                $query->where('id', '!=', $id);
+            })
+            ->exists();
 
-        return response()->json(['exists' => $query->exists()]);
+        return response()->json(['exists' => $exists]);
     }
 }

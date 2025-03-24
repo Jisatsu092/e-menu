@@ -10,6 +10,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-2 border-red-600">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-6">
+                        <x-show-entries :route="route('category.index')" :search="request()->search" class="w-full md:w-auto"></x-show-entries>
                         <h3 class="text-lg font-medium text-red-600">DATA MEJA RESTORAN</h3>
                         <button 
                             type="button" 

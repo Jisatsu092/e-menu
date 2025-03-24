@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
+use Laravel\Pail\ValueObjects\Origin\Console;
 
 class CategoryController extends Controller
 {
@@ -12,17 +15,23 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $page = request()->input('page', 1); 
-        $entries = request()->input('entries', 10); 
-        $search = request()->input('search');
-        $category= Category::when($search, function ($query) use ($search) {
-            return $query->where('name', 'like', '%' . $search . '%'); 
-        })->paginate($entries);
+        try {
+            $page = request()->input('page', 1);
+            $entries = request()->input('entries', 5);
+            $search = request()->input('search');
+            $category = Category::when($search, function ($query) use ($search) {
+                return $query->where('name', 'like', '%' . $search . '%');
+            })->paginate($entries);
 
-        // $category = Category::paginate(5);
-        return view('page.category.index')->with([
-            'category' => $category
-        ]);
+            // $category = Category::paginate(5);
+            return view('page.category.index')->with([
+                'category' => $category
+            ]);
+        } catch (\Exception $e) {
+            return view('error.index');
+            echo "<script>console.error('PHP Error: " .
+                addslashes($e->getMessage()) . "');</script>";
+        }
     }
 
     /**
@@ -30,11 +39,10 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        $data = Category::all();
-        return response()->json([
-            'data' => $data,
-        ]);
-
+        // $data = Category::all();
+        // return response()->json([
+        //     'data' => $data,
+        // ]);
     }
 
     /**
@@ -42,33 +50,27 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $data = [
-            'name' => $request->input('name'),
-        ];
-
-        Category::create($data);
-        
-
-        return back()->with('success', 'Data Kategori Sudah ditambahkan');
-        return response()->json([
-            'succes' => "Data Added!"
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:categories|max:255',
         ]);
-    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        if ($validator->fails()) {
+            return redirect()->route('category.index')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_message', $validator->errors()->first());
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        try {
+            Category::create($request->all());
+            return redirect()
+                ->route('category.index')
+                ->with('success', 'Kategori berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('category.index')
+                ->with('error_message', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -76,16 +78,28 @@ class CategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $data = [
-            'name' => $request->input('name'),
-        ];
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|max:255|unique:categories,name,' . $id,
+        ]);
 
-        $datas = Category::findOrFail($id);
-        $datas->update($data);
-        return back()->with('message_update', 'Data Kategori Sudah diupdate');
-        return response()->json([
-            'message_update' => "Data Updated!"
-        ]); 
+        if ($validator->fails()) {
+            return redirect()->route('category.index')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_message', $validator->errors()->first());
+        }
+
+        try {
+            $category = Category::findOrFail($id);
+            $category->update($request->all());
+            return redirect()
+                ->route('category.index')
+                ->with('success', 'Kategori berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('category.index')
+                ->with('error_message', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -96,21 +110,19 @@ class CategoryController extends Controller
         try {
             $category = Category::findOrFail($id);
             $category->delete();
-    
-            // Kembalikan respons sukses
-            return response()->json([
-                'success' => true,
-                'message' => 'Data berhasil dihapus'
-            ]);
+            return redirect()
+                ->route('category.index')
+                ->with('success', 'Kategori berhasil dihapus.');
         } catch (\Exception $e) {
-            // Tangkap error jika terjadi kesalahan
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            return redirect()
+                ->route('category.index')
+                ->with('error_message', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Check if a category name exists.
+     */
     public function checkName($name)
     {
         $exists = Category::where('name', $name)->exists();

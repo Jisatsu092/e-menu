@@ -7,58 +7,64 @@
 
     <div class="py-12 bg-white">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-2 border-red-600">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-2 border-red-600 p-4">
                 <div class="p-6">
-                    <div class="flex justify-between items-center mb-6">
-                    <x-show-entries :route="route('category.index')" :search="request()->search">
-                    </x-show-entries>
-                        <h3 class="text-lg font-medium text-red-600">DATA KATEGORI MENU</h3>
+                    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                        <x-show-entries :route="route('category.index')" :search="request()->search" class="w-full md:w-auto"></x-show-entries>
+                        <h3 class="text-md md:text-lg font-medium text-red-600">DATA KATEGORI MENU</h3>
                         <button 
                             type="button" 
                             onclick="toggleModal('createCategoryModal')"
-                            class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md"
+                            class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs md:text-sm px-4 py-2 md:px-5 md:py-2.5 shadow-md"
                         >
                             + Tambah Kategori
                         </button>
                     </div>
 
                     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                        <table class="w-full text-sm text-left text-gray-900">
+                        <table class="w-full text-xs md:text-sm text-left text-gray-900">
                             <thead class="text-xs text-white uppercase bg-red-600">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3">NO</th>
-                                    <th scope="col" class="px-6 py-3">NAMA KATEGORI</th>
-                                    <th scope="col" class="px-6 py-3">AKSI</th>
+                                    <th scope="col" class="px-4 py-2 md:px-6 md:py-3">NO</th>
+                                    <th scope="col" class="px-4 py-2 md:px-6 md:py-3">NAMA KATEGORI</th>
+                                    <th scope="col" class="px-4 py-2 md:px-6 md:py-3">AKSI</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                @php
+                                    $no = $category->firstItem();
+                                @endphp
                                 @foreach ($category as $key)
                                     <tr class="bg-white border-b hover:bg-red-50">
-                                        <td class="px-6 py-4 font-semibold">{{ $loop->iteration }}</td>
-                                        <td class="px-6 py-4 font-bold text-red-600">{{ $key->name }}</td>
-                                        <td class="px-6 py-4 space-x-2">
+                                        <td class="px-4 py-2 md:px-6 md:py-4 font-semibold">{{ $no++ }}</td>
+                                        <td class="px-4 py-2 md:px-6 md:py-4 font-bold text-red-600">{{ $key->name }}</td>
+                                        <td class="px-4 py-2 md:px-6 md:py-4 space-x-2 flex flex-wrap">
                                             <button 
                                                 data-id="{{ $key->id }}"
                                                 data-name="{{ $key->name }}"
                                                 onclick="editCategoryModal(this)"
-                                                class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-md text-sm text-white shadow"
+                                                class="bg-amber-500 hover:bg-amber-600 px-2 py-1 md:px-4 md:py-2 rounded-md text-xs md:text-sm text-white shadow"
                                             >
                                                 ✏️ Edit
                                             </button>
-                                            <button 
-                                                onclick="categoryDelete('{{ $key->id }}', '{{ $key->name }}')"
-                                                class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm text-white shadow"
-                                            >
-                                                🗑️ Hapus
-                                            </button>
+                                            <form action="{{ route('category.destroy', $key->id) }}" method="POST" class="delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button 
+                                                    type="submit"
+                                                    class="bg-red-500 hover:bg-red-600 px-2 py-1 md:px-4 md:py-2 rounded-md text-xs md:text-sm text-white shadow"
+                                                >
+                                                    🗑️ Hapus
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-4 text-red-600">
-                    {{ $category->links() }}
+                    <div class="mt-4 text-red-600 text-xs md:text-sm">
+                        {{ $category->links() }}
                     </div>
                 </div>
             </div>
@@ -158,98 +164,119 @@
     </div>
 
     <script>
+        // ====================== FUNGSI UTAMA ======================
         function toggleModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.toggle('hidden');
+            document.getElementById(modalId).classList.toggle('hidden');
         }
-
+    
         function editCategoryModal(button) {
             const id = button.dataset.id;
             const name = button.dataset.name;
-
             document.getElementById('editForm').action = `/category/${id}`;
             document.getElementById('name_edit').value = name;
             document.getElementById('title_edit').innerText = `✏️ UPDATE ${name}`;
             toggleModal('editCategoryModal');
         }
-
-        // Validasi Create Form
-        document.getElementById('createForm')?.addEventListener('submit', async function(e) {
+    
+        // ====================== HANDLER FORM ======================
+        document.getElementById('createForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
+            const name = document.getElementById('name_create').value.trim();
             
-            const nameInput = document.getElementById('name_create');
-            const name = nameInput.value.trim();
-
             if (!name) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Nama kategori tidak boleh kosong!',
-                    confirmButtonColor: '#dc2626'
-                });
+                showErrorAlert('Nama kategori tidak boleh kosong!');
                 return;
             }
-
-            const response = await fetch(`/category/check-name/${encodeURIComponent(name)}`);
-            const data = await response.json();
-
-            if (data.exists) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Duplikat!',
-                    text: `Kategori ${name} sudah terdaftar!`,
-                    confirmButtonColor: '#dc2626'
-                });
+            
+            showConfirmation(
+                'Tambahkan Kategori Baru?',
+                `${name} akan ditambahkan ke database`,
+                'Ya, Tambahkan!',
+                this
+            );
+        });
+    
+        document.getElementById('editForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name_edit').value.trim();
+            const oldName = document.getElementById('title_edit').innerText.replace('✏️ UPDATE ', '');
+            
+            if (!name) {
+                showErrorAlert('Nama kategori tidak boleh kosong!');
                 return;
             }
-
+            
+            showConfirmation(
+                'Update Kategori?',
+                `Ubah dari ${oldName} menjadi ${name}`,
+                'Ya, Update!',
+                this
+            );
+        });
+    
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+                
+                showConfirmation(
+                    'Hapus Kategori Permanen?',
+                    `Kategori "${name}" akan dihapus dari database`,
+                    'Ya, Hapus!',
+                    this
+                );
+            });
+        });
+    
+        // ====================== FUNGSI BANTU ======================
+        function showErrorAlert(message) {
             Swal.fire({
-                title: `Tambahkan Kategori ${name}?`,
+                icon: 'error',
+                title: 'Oops...',
+                text: message,
+                confirmButtonColor: '#dc2626'
+            });
+        }
+    
+        function showConfirmation(title, html, confirmText, form) {
+            Swal.fire({
+                title: title,
+                html: html,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
                 cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Tambahkan!',
-                cancelButtonText: 'Batal'
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Batal',
+                backdrop: 'rgba(220, 38, 38, 0.15)'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    this.submit();
-                }
-            });
-        });
-
-        // Konfirmasi Hapus
-        function categoryDelete(id, name) {
-            Swal.fire({
-                title: `Hapus Kategori ${name}?`,
-                text: "Data yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch(`/category/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json',
-                        }
-                    }).then(response => {
-                        if (response.ok) {
-                            Swal.fire({
-                                title: 'Terhapus!',
-                                text: `Kategori ${name} berhasil dihapus`,
-                                icon: 'success',
-                                confirmButtonColor: '#dc2626',
-                                timer: 2000
-                            }).then(() => location.reload());
-                        }
-                    });
+                    form.submit();
                 }
             });
         }
+    
+        // ====================== HANDLER FLASH MESSAGE ======================
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Sukses!',
+                html: `{{ session('success') }}`,
+                confirmButtonColor: '#dc2626',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        @endif
+    
+        @if(session('error_message'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                html: `{{ session('error_message') }}`,
+                confirmButtonColor: '#dc2626',
+                timer: 5000,
+                timerProgressBar: true
+            });
+        @endif
     </script>
 </x-app-layout>
