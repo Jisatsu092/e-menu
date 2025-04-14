@@ -64,21 +64,6 @@ class="bg-white border-b border-gray-100 shadow-sm">
                         </div>
                     </div>
 
-                    <div class="relative" x-data="{ masterOpen: false }" @click.outside="masterOpen = false">
-                        <button @click="masterOpen = !masterOpen" 
-                            class="flex items-center px-3 py-2 rounded-md hover:bg-red-500/10 transition-colors duration-300">
-                            <span class="text-gray-600">Master</span>
-                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                            </svg>
-                        </button>
-                        <div x-show="masterOpen" x-transition 
-                            class="absolute mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-100">
-                            <a href="{{ route('category.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-red-50">Kategori</a>
-                            <a href="{{ route('table.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-red-50">Meja</a>
-                        </div>
-                    </div>
-
                     <!-- Transaksi Dropdown untuk Admin -->
                     <div class="relative" x-data="{ transactionOpen: false }" @click.outside="transactionOpen = false">
                         <button @click="transactionOpen = !transactionOpen" 
@@ -98,7 +83,6 @@ class="bg-white border-b border-gray-100 shadow-sm">
                         <button @click="topingOpen = !topingOpen" 
                             class="flex items-center px-3 py-2 rounded-md hover:bg-red-500/10 transition-colors duration-300">
                             <span class="text-gray-600">Toping</span>
-                            <span class="text-gray-600">Transaksi</span>
                             <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
                             </svg>
@@ -237,6 +221,19 @@ class="bg-white border-b border-gray-100 shadow-sm">
                 </button>
                 <div x-show="mobileTransactionOpen" x-collapse class="ml-4">
                     <a href="{{ route('transaction.index') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Transaksi</a>
+                </div>
+            </div>
+
+            <div x-data="{ mobileTopingnOpen: false }" class="relative">
+                <button @click="mobileTopingOpen = !mobileTopingOpen" 
+                    class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 flex justify-between items-center">
+                    Toping
+                    <svg class="w-4 h-4 transform transition-transform" :class="{'rotate-180': mobileTopingOpen}" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                <div x-show="mobileTopingOpen" x-collapse class="ml-4">
+                    <a href="{{ route('toping.index') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Toping</a>
                 </div>
             </div>
             @endcan
