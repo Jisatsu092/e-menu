@@ -13,26 +13,30 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        try {
-            $page = request()->input('page', 1);
-            $entries = request()->input('entries', 5);
-            $search = request()->input('search');
-            $category = Category::when($search, function ($query) use ($search) {
-                return $query->where('name', 'like', '%' . $search . '%');
-            })->paginate($entries);
+public function index()
+{
+    try {
+        $entries = request()->input('entries', 5);
+        $search = request()->input('search');
+        
+        // Gunakan variabel plural "$categories" untuk koleksi data
+        $categories = Category::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', '%' . $search . '%');
+        })->paginate($entries);
 
-            // $category = Category::paginate(5);
-            return view('page.category.index')->with([
-                'category' => $category
-            ]);
-        } catch (\Exception $e) {
-            return view('error.index');
-            echo "<script>console.error('PHP Error: " .
-                addslashes($e->getMessage()) . "');</script>";
-        }
+        // Kirim variabel "$categories" ke view
+        return view('page.category.index')->with([
+            'categories' => $categories, // <-- NAMA VARIABEL HARUS PLURAL
+            'entries' => $entries,
+            'search' => $search
+        ]);
+        
+    } catch (\Exception $e) {
+        return redirect()
+            ->route('error.index')
+            ->with('error_message', 'Error: ' . $e->getMessage());
     }
+}
 
     /**
      * Show the form for creating a new resource.

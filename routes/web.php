@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TableController;
+use App\Http\Controllers\TopingController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,7 @@ Route::get('/', function () {
 
 Route::resource('category', CategoryController::class)->middleware('auth');
 Route::resource('table', TableController::class)->middleware('auth');
+Route::resource('toping', TopingController::class)->middleware('auth');
 
 Route::get('/beranda', function () {
     return view('beranda');
@@ -28,6 +30,7 @@ Route::delete('/table/{id}', [TableController::class, 'destroy'])->name('table.d
 
 Route::get('/category/check-name/{name}', [CategoryController::class, 'checkName'])->name('category.checkName');
 Route::get('/table/check-number/{number}', [TableController::class, 'checkNumber']);
+Route::get('/toping/check-name/{name}', [TopingController::class, 'checkName']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

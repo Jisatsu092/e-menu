@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Blade::directive('currency', function ($expression) {
+            return "<?php echo 'Rp ' . number_format($expression, 0, ',', '.'); ?>";
+        });
+
         Gate::define('role-A', function ($user){
             return $user->role === 'A';
         });
