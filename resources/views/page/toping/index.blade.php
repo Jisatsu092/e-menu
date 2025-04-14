@@ -30,22 +30,34 @@
                             </ul>
                         </div>
                     @endif
-
+                        <x-show-entries :route="route('category.index')" :search="request()->search" class="w-full md:w-auto"></x-show-entries>
+                        <h3 class="text-md md:text-lg font-medium text-red-600">DATA KATEGORI MENU</h3>
+                        <button 
+                            type="button" 
+                            onclick="toggleModal('createCategoryModal')"
+                            class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs md:text-sm px-4 py-2 md:px-5 md:py-2.5 shadow-md"
+                        >
+                            + Tambah Kategori
+                        </button>
+                    </div>
                     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                         <table class="w-full text-xs md:text-sm text-left text-gray-900">
                             <thead class="text-xs text-white uppercase bg-red-600">
                                 <tr>
                                     <th scope="col" class="px-4 py-2 md:px-6 md:py-3">NO</th>
+
                                     <th scope="col" class="px-4 py-2 md:px-6 md:py-3">NAMA</th>
                                     <th scope="col" class="px-4 py-2 md:px-6 md:py-3">KATEGORI</th>
                                     <th scope="col" class="px-4 py-2 md:px-6 md:py-3">HARGA</th>
                                     <th scope="col" class="px-4 py-2 md:px-6 md:py-3">STOK</th>
                                     <th scope="col" class="px-4 py-2 md:px-6 md:py-3">GAMBAR</th>
+                                    <th scope="col" class="px-4 py-2 md:px-6 md:py-3">NAMA KATEGORI</th>
                                     <th scope="col" class="px-4 py-2 md:px-6 md:py-3">AKSI</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @php
+
                                     $no = $topings->firstItem();
                                 @endphp
                                 @foreach ($topings as $toping)
@@ -71,11 +83,24 @@
                                                 data-stock="{{ $toping->stock }}"
                                                 data-image="{{ $toping->image }}"
                                                 onclick="editTopingModal(this)"
+                                    $no = $category->firstItem();
+                                @endphp
+                                @foreach ($category as $key)
+                                    <tr class="bg-white border-b hover:bg-red-50">
+                                        <td class="px-4 py-2 md:px-6 md:py-4 font-semibold">{{ $no++ }}</td>
+                                        <td class="px-4 py-2 md:px-6 md:py-4 font-bold text-red-600">{{ $key->name }}</td>
+                                        <td class="px-4 py-2 md:px-6 md:py-4 space-x-2 flex flex-wrap">
+                                            <button 
+                                                data-id="{{ $key->id }}"
+                                                data-name="{{ $key->name }}"
+                                                onclick="editCategoryModal(this)"
                                                 class="bg-amber-500 hover:bg-amber-600 px-2 py-1 md:px-4 md:py-2 rounded-md text-xs md:text-sm text-white shadow"
                                             >
                                                 ✏️ Edit
                                             </button>
+
                                             <form action="{{ route('toping.destroy', $toping->id) }}" method="POST" class="delete-form">
+                                            <form action="{{ route('category.destroy', $key->id) }}" method="POST" class="delete-form">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button 
@@ -92,7 +117,9 @@
                         </table>
                     </div>
                     <div class="mt-4 text-red-600 text-xs md:text-sm">
+
                         {{ $topings->appends(request()->query())->links() }}
+                        {{ $category->links() }}
                     </div>
                 </div>
             </div>
@@ -108,11 +135,22 @@
                 <button 
                     type="button" 
                     onclick="toggleModal('createTopingModal')"
+
+    <!-- Modal Tambah Kategori -->
+    <div id="createCategoryModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="fixed inset-0 bg-black opacity-50"></div>
+        <div class="relative bg-white rounded-lg shadow-2xl mx-4 md:mx-auto md:w-1/3 border-2 border-red-600">
+            <div class="flex items-start justify-between p-6 border-b-2 border-red-600">
+                <h3 class="text-xl font-semibold text-red-600">🆕 Tambah Kategori Baru</h3>
+                <button 
+                    type="button" 
+                    onclick="toggleModal('createCategoryModal')"
                     class="text-red-600 hover:text-red-800 text-2xl"
                 >
                     &times;
                 </button>
             </div>
+
             <form id="createForm" action="{{ route('toping.store') }}" method="POST" enctype="multipart/form-data" class="p-6">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,6 +225,20 @@
                 </div>
                 
                 <div class="flex justify-end space-x-4 mt-4">
+            <form id="createForm" action="{{ route('category.store') }}" method="POST" class="p-6">
+                @csrf
+                <div class="mb-6">
+                    <label for="name_create" class="block mb-2 text-sm font-medium text-red-600">Nama Kategori</label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        id="name_create"
+                        class="bg-white border-2 border-red-600 text-red-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"
+                        placeholder="Contoh: Makanan"
+                        required
+                    >
+                </div>
+                <div class="flex justify-end space-x-4">
                     <button 
                         type="submit"
                         class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md"
@@ -195,7 +247,9 @@
                     </button>
                     <button 
                         type="button"
+
                         onclick="toggleModal('createTopingModal')"
+                        onclick="toggleModal('createCategoryModal')"
                         class="text-red-600 bg-white hover:bg-red-50 border-2 border-red-600 rounded-lg text-sm font-medium px-5 py-2.5"
                     >
                         ✖ Batal
@@ -204,6 +258,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- Modal Edit Toping -->
     <div id="editTopingModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
@@ -214,11 +269,21 @@
                 <button 
                     type="button" 
                     onclick="toggleModal('editTopingModal')"
+    <!-- Modal Edit Kategori -->
+    <div id="editCategoryModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="fixed inset-0 bg-black opacity-50"></div>
+        <div class="relative bg-white rounded-lg shadow-2xl mx-4 md:mx-auto md:w-1/3 border-2 border-red-600">
+            <div class="flex items-start justify-between p-6 border-b-2 border-red-600">
+                <h3 class="text-xl font-semibold text-red-600" id="title_edit">✏️ Update Kategori</h3>
+                <button 
+                    type="button" 
+                    onclick="toggleModal('editCategoryModal')"
                     class="text-red-600 hover:text-red-800 text-2xl"
                 >
                     &times;
                 </button>
             </div>
+
             <form id="editForm" method="POST" enctype="multipart/form-data" class="p-6">
                 @csrf
                 @method('PUT')
@@ -294,6 +359,20 @@
                 </div>
                 
                 <div class="flex justify-end space-x-4 mt-4">
+            <form id="editForm" method="POST" class="p-6">
+                @csrf
+                @method('PATCH')
+                <div class="mb-6">
+                    <label for="name_edit" class="block mb-2 text-sm font-medium text-red-600">Nama Kategori</label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        id="name_edit"
+                        class="bg-white border-2 border-red-600 text-red-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"
+                        required
+                    >
+                </div>
+                <div class="flex justify-end space-x-4">
                     <button 
                         type="submit"
                         class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md"
@@ -302,7 +381,9 @@
                     </button>
                     <button 
                         type="button"
+
                         onclick="toggleModal('editTopingModal')"
+                        onclick="toggleModal('editCategoryModal')"
                         class="text-red-600 bg-white hover:bg-red-50 border-2 border-red-600 rounded-lg text-sm font-medium px-5 py-2.5"
                     >
                         ✖ Batal
@@ -313,6 +394,38 @@
     </div>
 
     <script>
+
+        // Fungsi Toggle Modal
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+            
+            // Reset preview saat modal ditutup
+            if(modalId === 'createTopingModal') {
+                document.getElementById('imagePreviewCreate').classList.add('hidden');
+                document.getElementById('image_create').value = '';
+            }
+        }
+
+        // Fungsi Preview Gambar
+        function showImagePreview(event, type) {
+            const input = event.target;
+            const previewId = type === 'create' ? 'imagePreviewCreate' : 'imagePreviewEdit';
+            const preview = document.getElementById(previewId);
+            const image = preview.querySelector('img');
+            
+            if(input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    image.src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        <script>
         // Fungsi Toggle Modal
         function toggleModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -407,4 +520,5 @@
             });
         @endif
     </script>
+</x-app-layout>
 </x-app-layout>
