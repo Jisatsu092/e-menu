@@ -12,7 +12,24 @@ class TopingController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $search = request('search');
+            $entries = request('entries', 5);
+
+            $tables = Table::when($search, function ($query) use ($search) {
+                $query->where('number', 'like', "%$search%");
+            })
+            ->paginate($entries)
+            ->withQueryString();
+
+            return view('page.table.index', [
+                'tables' => $tables,
+                'search' => $search,
+                'entries' => $entries
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('error.index')->with('error_message', 'Error: ' . $e->getMessage());
+        }
     }
 
     /**
