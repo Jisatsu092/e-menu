@@ -13,4 +13,5 @@ class Table extends Model
     public function topings() {
         return $this->hasMany(Toping::class);
     }
+
 }

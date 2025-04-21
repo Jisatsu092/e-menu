@@ -12,11 +12,8 @@
                     <div class="flex justify-between items-center mb-6">
                         <x-show-entries :route="route('category.index')" :search="request()->search" class="w-full md:w-auto"></x-show-entries>
                         <h3 class="text-lg font-medium text-red-600">DATA MEJA RESTORAN</h3>
-                        <button 
-                            type="button" 
-                            onclick="toggleModal('createTableModal')"
-                            class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md"
-                        >
+                        <button type="button" onclick="toggleModal('createTableModal')"
+                            class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md">
                             + Tambah Meja
                         </button>
                     </div>
@@ -37,27 +34,20 @@
                                         <td class="px-6 py-4 font-semibold">{{ $loop->iteration }}</td>
                                         <td class="px-6 py-4 font-bold text-red-600">{{ $table->number }}</td>
                                         <td class="px-6 py-4">
-                                            <span class="px-3 py-1.5 text-sm font-semibold rounded-full 
-                                                {{ $table->status === 'available' ? 
-                                                    'bg-green-100 text-green-800' : 
-                                                    'bg-red-100 text-red-800' }}">
+                                            <span
+                                                class="px-3 py-1.5 text-sm font-semibold rounded-full 
+                                                {{ $table->status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                                 {{ strtoupper($table->status) }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 space-x-2">
-                                            <button 
-                                                data-id="{{ $table->id }}"
-                                                data-number="{{ $table->number }}"
-                                                data-status="{{ $table->status }}"
-                                                onclick="editTableModal(this)"
-                                                class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-md text-sm text-white shadow"
-                                            >
+                                            <button data-id="{{ $table->id }}" data-number="{{ $table->number }}"
+                                                data-status="{{ $table->status }}" onclick="editTableModal(this)"
+                                                class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-md text-sm text-white shadow">
                                                 ✏️ Edit
                                             </button>
-                                            <button 
-                                                onclick="tableDelete('{{ $table->id }}', '{{ $table->number }}')"
-                                                class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm text-white shadow"
-                                            >
+                                            <button onclick="tableDelete('{{ $table->id }}', '{{ $table->number }}')"
+                                                class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm text-white shadow">
                                                 🗑️ Hapus
                                             </button>
                                         </td>
@@ -81,11 +71,8 @@
         <div class="relative bg-white rounded-lg shadow-2xl mx-4 md:mx-auto md:w-1/3 border-2 border-red-600">
             <div class="flex items-start justify-between p-6 border-b-2 border-red-600">
                 <h3 class="text-xl font-semibold text-red-600">🆕 Tambah Meja Baru</h3>
-                <button 
-                    type="button" 
-                    onclick="toggleModal('createTableModal')"
-                    class="text-red-600 hover:text-red-800 text-2xl"
-                >
+                <button type="button" onclick="toggleModal('createTableModal')"
+                    class="text-red-600 hover:text-red-800 text-2xl">
                     &times;
                 </button>
             </div>
@@ -93,27 +80,17 @@
                 @csrf
                 <div class="mb-6">
                     <label for="number_create" class="block mb-2 text-sm font-medium text-red-600">Nomor Meja</label>
-                    <input 
-                        type="text" 
-                        name="number" 
-                        id="number_create"
+                    <input type="text" name="number" id="number_create"
                         class="bg-white border-2 border-red-600 text-red-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"
-                        placeholder="MEJA-01"
-                        required
-                    >
+                        placeholder="MEJA-01" required>
                 </div>
                 <div class="flex justify-end space-x-4">
-                    <button 
-                        type="submit"
-                        class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md"
-                    >
+                    <button type="submit"
+                        class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md">
                         💾 Simpan
                     </button>
-                    <button 
-                        type="button"
-                        onclick="toggleModal('createTableModal')"
-                        class="text-red-600 bg-white hover:bg-red-50 border-2 border-red-600 rounded-lg text-sm font-medium px-5 py-2.5"
-                    >
+                    <button type="button" onclick="toggleModal('createTableModal')"
+                        class="text-red-600 bg-white hover:bg-red-50 border-2 border-red-600 rounded-lg text-sm font-medium px-5 py-2.5">
                         ✖ Batal
                     </button>
                 </div>
@@ -127,11 +104,8 @@
         <div class="relative bg-white rounded-lg shadow-2xl mx-4 md:mx-auto md:w-1/3 border-2 border-red-600">
             <div class="flex items-start justify-between p-6 border-b-2 border-red-600">
                 <h3 class="text-xl font-semibold text-red-600" id="title_edit">✏️ Update Meja</h3>
-                <button 
-                    type="button" 
-                    onclick="toggleModal('editTableModal')"
-                    class="text-red-600 hover:text-red-800 text-2xl"
-                >
+                <button type="button" onclick="toggleModal('editTableModal')"
+                    class="text-red-600 hover:text-red-800 text-2xl">
                     &times;
                 </button>
             </div>
@@ -140,37 +114,25 @@
                 @method('PATCH')
                 <div class="mb-6">
                     <label for="number_edit" class="block mb-2 text-sm font-medium text-red-600">Nomor Meja</label>
-                    <input 
-                        type="text" 
-                        name="number" 
-                        id="number_edit"
+                    <input type="text" name="number" id="number_edit"
                         class="bg-white border-2 border-red-600 text-red-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"
-                        required
-                    >
+                        required>
                 </div>
                 <div class="mb-6">
                     <label for="status_edit" class="block mb-2 text-sm font-medium text-red-600">Status</label>
-                    <select 
-                        name="status" 
-                        id="status_edit"
-                        class="bg-white border-2 border-red-600 text-red-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"
-                    >
+                    <select name="status" id="status_edit"
+                        class="bg-white border-2 border-red-600 text-red-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
                         <option value="available" class="text-green-600">AVAILABLE</option>
                         <option value="occupied" class="text-red-600">OCCUPIED</option>
                     </select>
                 </div>
                 <div class="flex justify-end space-x-4">
-                    <button 
-                        type="submit"
-                        class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md"
-                    >
+                    <button type="submit"
+                        class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md">
                         💾 Simpan
                     </button>
-                    <button 
-                        type="button"
-                        onclick="toggleModal('editTableModal')"
-                        class="text-red-600 bg-white hover:bg-red-50 border-2 border-red-600 rounded-lg text-sm font-medium px-5 py-2.5"
-                    >
+                    <button type="button" onclick="toggleModal('editTableModal')"
+                        class="text-red-600 bg-white hover:bg-red-50 border-2 border-red-600 rounded-lg text-sm font-medium px-5 py-2.5">
                         ✖ Batal
                     </button>
                 </div>
@@ -199,7 +161,7 @@
         // Validasi Create Form
         document.getElementById('createForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             const numberInput = document.getElementById('number_create');
             const number = numberInput.value.trim();
 
@@ -244,7 +206,7 @@
         // Validasi Edit Form
         document.getElementById('editForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             const number = document.getElementById('number_edit').value.trim();
             const id = this.action.split('/').pop();
 
@@ -291,22 +253,43 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch(`/table/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json',
-                        }
-                    }).then(response => {
-                        if (response.ok) {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                            }
+                        })
+                        // .then(response => {
+                        //     if (!response.ok) {
+                        //         throw new Error('Gagal menghapus data');
+                        //     }
+                        //     return response.json();
+                        // })
+                        .then(data => {
                             Swal.fire({
                                 title: 'Terhapus!',
                                 text: `Meja ${number} berhasil dihapus`,
                                 icon: 'success',
                                 confirmButtonColor: '#dc2626',
-                                timer: 2000
-                            }).then(() => location.reload());
-                        }
-                    });
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            location.reload();
+
+                            // Remove table row from DOM without reload
+                            const row = document.querySelector(`tr[data-id="${id}"]`);
+                            if (row) {
+                                row.remove();
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Gagal!',
+                                text: error.message || 'Terjadi kesalahan',
+                                icon: 'error',
+                                confirmButtonColor: '#dc2626'
+                            });
+                        });
                 }
             });
         }

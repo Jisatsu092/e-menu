@@ -27,6 +27,7 @@ class TopingController extends Controller
     
             // Ambil semua kategori untuk dropdown
             $categories = \App\Models\Category::all();
+            
     
             return view('page.toping.index', [
                 'topings' => $topings,
