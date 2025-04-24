@@ -1,4 +1,5 @@
 <x-app-layout>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white bg-red-600 p-4 rounded-lg shadow">
             {{ __('MANAJEMEN MEJA') }}
@@ -140,6 +141,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         function toggleModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -159,49 +162,50 @@
         }
 
         // Validasi Create Form
-        document.getElementById('createForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
+document.getElementById('createForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-            const numberInput = document.getElementById('number_create');
-            const number = numberInput.value.trim();
+    const numberInput = document.getElementById('number_create');
+    const number = numberInput.value.trim();
 
-            if (!number) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Nomor meja tidak boleh kosong!',
-                    confirmButtonColor: '#dc2626'
-                });
-                return;
-            }
-
-            const response = await fetch(`/table/check-number/${encodeURIComponent(number)}`);
-            const data = await response.json();
-
-            if (data.exists) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Duplikat!',
-                    text: `Meja ${number} sudah terdaftar!`,
-                    confirmButtonColor: '#dc2626'
-                });
-                return;
-            }
-
-            Swal.fire({
-                title: `Tambahkan Meja ${number}?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Tambahkan!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.submit();
-                }
-            });
+    if (!number) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Nomor meja tidak boleh kosong!',
+            confirmButtonColor: '#dc2626'
         });
+        return;
+    }
+
+    try {
+        const response = await fetch(`/table/check-number/${encodeURIComponent(number)}`);
+        if (!response.ok) throw new Error('Network error');
+        
+        const data = await response.json();
+        
+        if (data.exists) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Duplikat!',
+                text: `Meja ${number} sudah terdaftar!`,
+                confirmButtonColor: '#dc2626'
+            });
+            return;
+        }
+
+        // Jika validasi OK, submit form
+        this.submit();
+
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Gagal melakukan validasi nomor meja',
+            confirmButtonColor: '#dc2626'
+        });
+    }
+});
 
         // Validasi Edit Form
         document.getElementById('editForm')?.addEventListener('submit', async function(e) {

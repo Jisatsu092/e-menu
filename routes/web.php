@@ -30,9 +30,10 @@ Route::get('/category/{id}/edit', [CategoryController::class, 'edit'])->name('ca
 Route::put('/category/{id}', [CategoryController::class, 'update'])->name('category.update');
 Route::delete('/table/{id}', [TableController::class, 'destroy'])->name('table.destroy');
 
-
+Route::put('/transaction/{id}/process', [TransactionController::class, 'process'])
+    ->name('transaction.process');
 Route::get('/category/check-name/{name}', [CategoryController::class, 'checkName'])->name('category.checkName');
-Route::get('/table/check-number/{number}', [TableController::class, 'checkNumber']);
+Route::get('/table/check-number/{number}', [TableController::class, 'checkNumber'])->name('table.checkNumber');
 Route::get('/toping/check-name/{name}', [TopingController::class, 'checkName']);
 
 Route::middleware('auth')->group(function () {

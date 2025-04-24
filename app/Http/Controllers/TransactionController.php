@@ -17,14 +17,14 @@ class TransactionController extends Controller
             $search = request('search');
             $entries = request('entries', 10);
 
-            
-            $transactions = Transaction::with('table')
-                ->when($search, function($query) use ($search) {
-                    $query->whereHas('table', function($q) use ($search) {
+
+            $transactions = Transaction::with('table', 'user')
+                ->when($search, function ($query) use ($search) {
+                    $query->whereHas('table', function ($q) use ($search) {
                         $q->where('number', 'like', "%$search%");
                     })
-                    ->orWhere('total_price', 'like', "%$search%")
-                    ->orWhere('status', 'like', "%$search%");
+                        ->orWhere('total_price', 'like', "%$search%")
+                        ->orWhere('status', 'like', "%$search%");
                 })
                 ->orderBy('created_at', 'desc')
                 ->paginate($entries)
@@ -42,8 +42,7 @@ class TransactionController extends Controller
                 'search' => $search,
                 'entries' => $entries
             ]);
-            
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return redirect()->route('error.index')
                 ->with('error_message', 'Error: ' . $e->getMessage());
         }
@@ -52,17 +51,17 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'required|exists:users,id', // Pastikan user_id ada
             'table_id' => 'required|exists:tables,id',
             'total_price' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,paid,cancelled'
+            'status' => 'required|in:pending,paid,cancelled,proses'
         ]);
 
         DB::beginTransaction();
         try {
             $table = Table::findOrFail($request->table_id);
-            $user = User::findOrFail($request->user_id);
-            
+            $user = User::findOrFail($request->user_id); // Pastikan user valid
+
             $transaction = Transaction::create([
                 'user_id' => $user->id,
                 'table_id' => $request->table_id,
@@ -70,18 +69,18 @@ class TransactionController extends Controller
                 'status' => $request->status
             ]);
 
+            // Update status meja
             $table->update([
                 'status' => ($request->status === 'paid') ? 'available' : 'occupied'
             ]);
 
             DB::commit();
             return redirect()->route('transaction.index')
-                ->with('message_insert', 'Transaksi berhasil ditambahkan');
-                
+                ->with('success', 'Transaksi berhasil ditambahkan');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('error.index')
-                ->with('error_message', 'Gagal menambahkan transaksi: ' . $e->getMessage());
+            return redirect()->route('transaction.index')
+                ->with('error', 'Gagal menambahkan transaksi: ' . $e->getMessage());
         }
     }
 
@@ -90,25 +89,24 @@ class TransactionController extends Controller
         $request->validate([
             'table_id' => 'required|exists:tables,id',
             'total_price' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,paid,cancelled'
+            'status' => 'required|in:pending,paid,cancelled,proses'
         ]);
 
         DB::beginTransaction();
         try {
             $transaction = Transaction::findOrFail($id);
             $table = $transaction->table;
-            
-            if($request->status !== $transaction->status) {
+
+            if ($request->status !== $transaction->status) {
                 $newStatus = ($request->status === 'paid') ? 'available' : 'occupied';
                 $table->update(['status' => $newStatus]);
             }
 
             $transaction->update($request->all());
-            
+
             DB::commit();
             return redirect()->route('transaction.index')
                 ->with('message_insert', 'Transaksi berhasil diperbarui');
-                
         } catch (ModelNotFoundException $e) {
             DB::rollBack();
             return redirect()->route('error.index')
@@ -125,19 +123,18 @@ class TransactionController extends Controller
         DB::beginTransaction();
         try {
             $transaction = Transaction::findOrFail($id);
-            
-            if($transaction->status === 'paid') {
+
+            if ($transaction->status === 'paid') {
                 $transaction->table->update(['status' => 'available']);
             }
-            
+
             $transaction->delete();
-            
+
             DB::commit();
             return response()->json([
                 'success' => true,
                 'message' => 'Transaksi berhasil dihapus'
             ]);
-            
         } catch (ModelNotFoundException $e) {
             DB::rollBack();
             return response()->json([
@@ -152,4 +149,14 @@ class TransactionController extends Controller
             ], 500);
         }
     }
+
+    public function process(Request $request, $id)
+    {
+        $transaction = Transaction::findOrFail($id);
+        $transaction->update(['status' => 'proses']);
+
+        return response()->json(['success' => 'Status updated to Proses']);
+    }
+
+
 }

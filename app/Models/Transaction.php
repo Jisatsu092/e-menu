@@ -10,15 +10,26 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'table_id',
         'total_price',
-        'status'
+        'status',
+        'payment_proof'
+    ];
+
+    protected $casts = [
+        'status' => 'string', // atau enum jika menggunakan package enum
     ];
 
     // Relasi ke tabel meja
     public function table()
     {
         return $this->belongsTo(Table::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     // Relasi ke detail transaksi

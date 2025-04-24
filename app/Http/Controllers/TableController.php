@@ -19,8 +19,8 @@ class TableController extends Controller
             $tables = Table::when($search, function ($query) use ($search) {
                 $query->where('number', 'like', "%$search%");
             })
-            ->paginate($entries)
-            ->withQueryString();
+                ->paginate($entries)
+                ->withQueryString();
 
             return view('page.table.index', [
                 'tables' => $tables,
@@ -107,15 +107,10 @@ class TableController extends Controller
     /**
      * Check if a table number exists.
      */
-    public function checkNumber($number, Request $request)
+    // TableController.php
+    public function checkNumber($number)
     {
-        $id = $request->query('id');
-        $exists = Table::where('number', $number)
-            ->when($id, function ($query) use ($id) {
-                $query->where('id', '!=', $id);
-            })
-            ->exists();
-
+        $exists = Table::where('number', $number)->exists();
         return response()->json(['exists' => $exists]);
     }
 }
