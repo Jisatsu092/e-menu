@@ -7,7 +7,7 @@
         <title>Ajnira Ramen - Pemesanan</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
         <style>
             .animate-bounce-in {
                 animation: bounceIn 0.3s ease;
@@ -28,6 +28,7 @@
                     <button onclick="closeCheckoutModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
                 <form id="checkoutForm" onsubmit="processPayment(event)">
+                    @csrf
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Nama Pelanggan</label>
@@ -121,9 +122,9 @@
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <p>Nama: <span id="customerName" class="font-bold"></span></p>
-                        <p>Tanggal: <span id="orderDate"></span></p>
-                        <p>Status: <span id="orderStatus" class="font-bold text-green-500"></span></p>
+                        <p>Nama: <span id="customerName" class="font-bold">{{ Auth::user()->name }}</span></p>
+                        <p>Tanggal: <span id="orderDate">{{ now()->format('d/m/Y H:i') }}</span></p>
+                        <p>Status: <span id="orderStatus" class="font-bold text-green-500">Dibayar</span></p>
                     </div>
                     <button onclick="window.print()" 
                             class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">
@@ -235,6 +236,7 @@
                 const itemIndex = cart.findIndex(item => item.id === id);
                 const stockElement = document.getElementById(`stock-${id}`);
                 let currentStock = parseInt(stockElement.textContent);
+                
                 if (itemIndex > -1) {
                     const newQty = cart[itemIndex].quantity + change;
                     if (newQty < 0) return;
@@ -326,35 +328,35 @@
                 const spicinessLevel = document.getElementById('spicinessLevel').value;
                 
                 if (!tableNumber || !bowlSize || !spicinessLevel) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Data Tidak Lengkap',
-                        text: 'Harap lengkapi semua field yang diperlukan!'
-                    });
+                    Swal.fire('Error!', 'Harap lengkapi semua field!', 'error');
                     return;
                 }
 
-                const orderData = {
+                closeCheckoutModal();
+                document.getElementById('paymentConfirmationModal').classList.remove('hidden');
+                
+                const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+                generateQRCode(total);
+                
+                sessionStorage.setItem('pendingOrder', JSON.stringify({
                     table_id: tableNumber,
                     bowl_size: bowlSize,
                     spiciness_level: spicinessLevel,
-                    total_price: cart.reduce((acc, item) => acc + (item.price * item.quantity), 0),
-                    status: 'pending'
-                };
-
-                sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
-                generateQRCode(orderData.total_price);
-                closeCheckoutModal();
-                document.getElementById('paymentConfirmationModal').classList.remove('hidden');
+                    items: cart,
+                    total_price: total
+                }));
             }
 
             function generateQRCode(amount) {
                 const qrCodeContainer = document.getElementById('qrCodeContainer');
                 qrCodeContainer.innerHTML = '';
                 new QRCode(qrCodeContainer, {
-                    text: `https://payment.example.com?amount=${amount}`,
+                    text: `Pembayaran: Rp${amount.toLocaleString('id-ID')}`,
                     width: 200,
-                    height: 200
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
                 });
             }
 
@@ -375,22 +377,22 @@
                     const response = await fetch('/confirm-payment', {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
                         },
                         body: formData
                     });
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        document.getElementById('customerName').textContent = "{{ Auth::user()->name }}";
-                        document.getElementById('orderDate').textContent = new Date().toLocaleString();
-                        document.getElementById('orderStatus').textContent = 'PAID';
-                        document.getElementById('orderConfirmationModal').classList.remove('hidden');
-                        closePaymentModal();
-                        clearCart();
+
+                    if (!response.ok) {
+                        throw new Error('Gagal memproses pembayaran');
                     }
+
+                    document.getElementById('orderConfirmationModal').classList.remove('hidden');
+                    closePaymentModal();
+                    clearCart();
+                    
                 } catch (error) {
-                    Swal.fire('Error!', 'Gagal mengupload bukti pembayaran', 'error');
+                    Swal.fire('Error!', error.message, 'error');
                 }
             }
         </script>

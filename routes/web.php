@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ErrorController;
+use App\Http\Controllers\PaymentProviderController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\TopingController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\userInterfaceController;
+use App\Models\PaymentProvider;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -20,10 +22,17 @@ Route::resource('toping', TopingController::class)->middleware('auth');
 Route::resource('userInterface', userInterfaceController::class)->middleware('auth');
 
 Route::post('/confirm-payment', [TransactionController::class, 'confirmPayment'])
-     ->middleware('auth')
-     ->name('confirm.payment');
+    ->middleware('auth')
+    ->name('confirm.payment');
 
-     
+// File: routes/web.php
+Route::resource('payment_providers', PaymentProviderController::class)
+    ->middleware('auth');
+    
+Route::put('/payment_providers/{payment_provider}/toggle-status', 
+    [PaymentProviderController::class, 'toggleStatus'])
+    ->name('payment_providers.toggle-status')
+    ->middleware('auth');
 
 Route::get('/beranda', function () {
     return view('beranda');
@@ -51,4 +60,4 @@ Route::middleware('auth')->group(function () {
     Route::resource('error', ErrorController::class);
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

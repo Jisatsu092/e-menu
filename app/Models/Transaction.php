@@ -16,6 +16,7 @@ class Transaction extends Model
         'spiciness_level',
         'total_price',
         'payment_proof',
+        'payment_provider_id',
         'status'
     ];
 
@@ -24,9 +25,9 @@ class Transaction extends Model
     ];
 
     public function setPaymentProofAttribute($value)
-{
-    $this->attributes['payment_proof'] = $value->store('payment_proofs');
-}
+    {
+        $this->attributes['payment_proof'] = $value->store('payment_proofs');
+    }
 
     // Relasi ke tabel meja
     public function table()
@@ -38,14 +39,20 @@ class Transaction extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function paymentProvider()
+    {
+        return $this->belongsTo(PaymentProvider::class);
+    }
 
     // Relasi ke detail transaksi
-    public function details() {
+    public function details()
+    {
         return $this->hasMany(TransactionDetail::class);
     }
 
     // Scope untuk filter status
-    public function scopeFilter($query, $status) {
+    public function scopeFilter($query, $status)
+    {
         return $query->where('status', $status);
     }
 }
