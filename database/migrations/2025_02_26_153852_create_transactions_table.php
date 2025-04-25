@@ -19,9 +19,11 @@ return new class extends Migration
                 ->constrained('tables')
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
-            $table->decimal('total_price', 10, 2)->default(0);
-            $table->enum('status', ['pending', 'paid', 'cancelled', 'proses'])->default('pending');
-            $table->string('paymen_proof')->nullable();
+                $table->string('bowl_size');
+                $table->string('spiciness_level');
+                $table->integer('total_price');
+                $table->string('payment_proof')->nullable();
+                $table->enum('status', ['pending', 'paid'])->default('pending');
             $table->timestamps();
         });
     }

@@ -12,14 +12,21 @@ class Transaction extends Model
     protected $fillable = [
         'user_id',
         'table_id',
+        'bowl_size',
+        'spiciness_level',
         'total_price',
-        'status',
-        'payment_proof'
+        'payment_proof',
+        'status'
     ];
 
     protected $casts = [
         'status' => 'string', // atau enum jika menggunakan package enum
     ];
+
+    public function setPaymentProofAttribute($value)
+{
+    $this->attributes['payment_proof'] = $value->store('payment_proofs');
+}
 
     // Relasi ke tabel meja
     public function table()

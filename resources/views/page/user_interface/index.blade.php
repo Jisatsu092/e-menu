@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Menu Topping - Ajnira</title>
+        <title>Ajnira Ramen - Pemesanan</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
@@ -20,11 +20,11 @@
         </style>
     </head>
     <body class="bg-gray-100">
-        <!-- Checkout Modal -->
+        <!-- Modal Konfirmasi Pesanan -->
         <div id="checkoutModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white rounded-lg p-6 w-full max-w-lg animate-bounce-in">
+            <div class="bg-white rounded-lg p-6 w-full max-w-lg animate-bounce-in mx-auto">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 class="text-xl font-bold">Konfirmasi Pesanan</h3>
+                    <h3 class="text-xl font-bold text-red-500">Konfirmasi Pesanan</h3>
                     <button onclick="closeCheckoutModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
                 <form id="checkoutForm" onsubmit="processPayment(event)">
@@ -67,13 +67,11 @@
                         </div>
                         <div class="border rounded-lg p-3">
                             <h4 class="font-medium mb-2">Detail Pesanan:</h4>
-                            <div id="orderItems" class="space-y-2">
-                                <!-- Items will be populated by JavaScript -->
-                            </div>
+                            <div id="orderItems" class="space-y-2"></div>
                             <div class="mt-3 pt-2 border-t">
                                 <p class="flex justify-between font-bold">
                                     <span>Total:</span>
-                                    <span id="modalTotal">Rp0</span>
+                                    <span id="modalTotal" class="text-red-500">Rp0</span>
                                 </p>
                             </div>
                         </div>
@@ -83,7 +81,7 @@
                                 Batal
                             </button>
                             <button type="submit" 
-                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
                                 Bayar Sekarang
                             </button>
                         </div>
@@ -92,11 +90,11 @@
             </div>
         </div>
 
-        <!-- Payment Confirmation Modal -->
+        <!-- Modal Konfirmasi Pembayaran -->
         <div id="paymentConfirmationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-lg animate-bounce-in">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 class="text-xl font-bold">Konfirmasi Pembayaran</h3>
+                    <h3 class="text-xl font-bold text-red-500">Konfirmasi Pembayaran</h3>
                     <button onclick="closePaymentModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
                 <div class="space-y-4">
@@ -114,16 +112,16 @@
             </div>
         </div>
 
-        <!-- Order Confirmation Modal -->
+        <!-- Modal Pesanan Berhasil -->
         <div id="orderConfirmationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-lg animate-bounce-in">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 class="text-xl font-bold">Pesanan Berhasil</h3>
+                    <h3 class="text-xl font-bold text-red-500">Pesanan Berhasil</h3>
                     <button onclick="closeOrderModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <p>Nama: <span id="customerName"></span></p>
+                        <p>Nama: <span id="customerName" class="font-bold"></span></p>
                         <p>Tanggal: <span id="orderDate"></span></p>
                         <p>Status: <span id="orderStatus" class="font-bold text-green-500"></span></p>
                     </div>
@@ -136,42 +134,41 @@
         </div>
 
         <div class="container mx-auto p-6">
-            <!-- Header Section -->
-            <div class="text-center mb-12">
-                <h1 class="text-4xl font-bold text-gray-800 mb-2">🍜 Menu Topping</h1>
-                <p class="text-gray-600">Pilih topping favorit Anda</p>
-            </div>
-            <!-- Cart System -->
-            <div class="fixed top-4 right-4 z-40">
-                <button id="cartButton" onclick="toggleCart()" 
-                        class="bg-blue-500 text-white p-4 rounded-full shadow-lg relative hover:bg-blue-600">
-                    🛒
-                    <span id="cartBadge" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">0</span>
-                </button>
-                <!-- Cart Dropdown -->
-                <div id="cartDropdown" class="hidden mt-2 w-72 bg-white rounded-lg shadow-xl absolute right-0">
-                    <div class="p-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-bold">Keranjang Kamu</h3>
-                            <button onclick="clearCart()" class="text-red-500 text-sm">Hapus Semua</button>
-                        </div>
-                        <div id="cartItems" class="space-y-3 max-h-60 overflow-y-auto">
-                            <!-- Cart items populated by JavaScript -->
-                        </div>
-                        <div class="mt-4 pt-4 border-t">
-                            <div class="flex justify-between mb-3">
-                                <span class="font-medium">Total:</span>
-                                <span id="cartTotal" class="font-bold">Rp0</span>
+            <!-- Header dengan Keranjang -->
+            <div class="flex justify-between items-center mb-12">
+                <div class="text-left">
+                    <h1 class="text-4xl font-bold text-red-500 mb-2">🍜 Ajnira Ramen</h1>
+                    <p class="text-gray-600">Pilih topping favorit Anda</p>
+                </div>
+                <div class="relative mr-8">
+                    <button id="cartButton" onclick="toggleCart()" 
+                            class="bg-red-500 text-white p-4 rounded-full shadow-lg relative hover:bg-red-600">
+                        🛒
+                        <span id="cartBadge" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">0</span>
+                    </button>
+                    <div id="cartDropdown" class="hidden mt-2 w-72 bg-white rounded-lg shadow-xl absolute right-0">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold">Keranjang Kamu</h3>
+                                <button onclick="clearCart()" class="text-red-500 text-sm">Hapus Semua</button>
                             </div>
-                            <button onclick="openCheckoutModal()" 
-                                    class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">
-                                Checkout
-                            </button>
+                            <div id="cartItems" class="space-y-3 max-h-60 overflow-y-auto"></div>
+                            <div class="mt-4 pt-4 border-t">
+                                <div class="flex justify-between mb-3">
+                                    <span class="font-medium">Total:</span>
+                                    <span id="cartTotal" class="font-bold text-red-500">Rp0</span>
+                                </div>
+                                <button onclick="openCheckoutModal()" 
+                                        class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600">
+                                    Checkout
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Topping Grid -->
+
+            <!-- Daftar Topping -->
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 @foreach($topings as $toping)
                 <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
@@ -189,7 +186,7 @@
                     <div class="text-gray-800">
                         <h3 class="text-xl font-bold mb-2">{{ $toping->name }}</h3>
                         <div class="flex justify-between items-center">
-                            <p class="text-2xl font-bold text-blue-500">
+                            <p class="text-2xl font-bold text-red-500">
                                 Rp{{ number_format($toping->price, 0, ',', '.') }}
                             </p>
                             <div class="flex items-center space-x-2">
@@ -197,7 +194,7 @@
                                         class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300">-</button>
                                 <span id="qty-{{ $toping->id }}" class="px-3">0</span>
                                 <button onclick="updateQuantity('{{ $toping->id }}', 1, {{ $toping->price }})" 
-                                        class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600">+</button>
+                                        class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">+</button>
                             </div>
                         </div>
                     </div>
@@ -205,14 +202,14 @@
                 @endforeach
             </div>
         </div>
+
         <script>
             let cart = [];
             let cartVisible = false;
 
-            // Cart Functions
+            // Fungsi Keranjang
             function updateCartDisplay() {
                 document.getElementById('cartBadge').textContent = cart.reduce((acc, item) => acc + item.quantity, 0);
-                
                 const cartItems = document.getElementById('cartItems');
                 cartItems.innerHTML = cart.map(item => `
                     <div class="flex justify-between items-center">
@@ -227,10 +224,8 @@
                         </button>
                     </div>
                 `).join('');
-                
                 const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
                 document.getElementById('cartTotal').textContent = `Rp${total.toLocaleString('id-ID')}`;
-                
                 cart.forEach(item => {
                     document.getElementById(`qty-${item.id}`).textContent = item.quantity;
                 });
@@ -240,7 +235,6 @@
                 const itemIndex = cart.findIndex(item => item.id === id);
                 const stockElement = document.getElementById(`stock-${id}`);
                 let currentStock = parseInt(stockElement.textContent);
-
                 if (itemIndex > -1) {
                     const newQty = cart[itemIndex].quantity + change;
                     if (newQty < 0) return;
@@ -270,7 +264,6 @@
                 const itemIndex = cart.findIndex(item => item.id === id);
                 const removedItem = cart[itemIndex];
                 const stockElement = document.getElementById(`stock-${id}`);
-                
                 if (stockElement) {
                     stockElement.textContent = parseInt(stockElement.textContent) + removedItem.quantity;
                 }
@@ -293,46 +286,58 @@
 
             function toggleCart() {
                 cartVisible = !cartVisible;
-                document.getElementById('cartDropdown').style.display = cartVisible ? 'block' : 'none';
+                document.getElementById('cartDropdown').classList.toggle('hidden', !cartVisible);
             }
 
-            // Checkout Functions
+            // Fungsi Modal
             function openCheckoutModal() {
                 if (cart.length === 0) {
                     Swal.fire('Keranjang kosong!', 'Silakan tambahkan item terlebih dahulu', 'warning');
                     return;
                 }
-
                 document.getElementById('orderItems').innerHTML = cart.map(item => `
                     <div class="flex justify-between">
                         <span>${item.name} (${item.quantity}x)</span>
                         <span>Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
                     </div>
                 `).join('');
-
                 const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
                 document.getElementById('modalTotal').textContent = `Rp${total.toLocaleString('id-ID')}`;
-                document.getElementById('checkoutModal').style.display = 'flex';
+                document.getElementById('checkoutModal').classList.remove('hidden');
             }
 
             function closeCheckoutModal() {
-                document.getElementById('checkoutModal').style.display = 'none';
+                document.getElementById('checkoutModal').classList.add('hidden');
             }
 
             function closePaymentModal() {
-                document.getElementById('paymentConfirmationModal').style.display = 'none';
+                document.getElementById('paymentConfirmationModal').classList.add('hidden');
             }
 
             function closeOrderModal() {
-                document.getElementById('orderConfirmationModal').style.display = 'none';
+                document.getElementById('orderConfirmationModal').classList.add('hidden');
             }
 
+            // Proses Pembayaran
             async function processPayment(e) {
                 e.preventDefault();
+                const tableNumber = document.getElementById('tableNumber').value;
+                const bowlSize = document.getElementById('bowlSize').value;
+                const spicinessLevel = document.getElementById('spicinessLevel').value;
+                
+                if (!tableNumber || !bowlSize || !spicinessLevel) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Data Tidak Lengkap',
+                        text: 'Harap lengkapi semua field yang diperlukan!'
+                    });
+                    return;
+                }
+
                 const orderData = {
-                    table_id: document.getElementById('tableNumber').value,
-                    bowl_size: document.getElementById('bowlSize').value,
-                    spiciness_level: document.getElementById('spicinessLevel').value,
+                    table_id: tableNumber,
+                    bowl_size: bowlSize,
+                    spiciness_level: spicinessLevel,
                     total_price: cart.reduce((acc, item) => acc + (item.price * item.quantity), 0),
                     status: 'pending'
                 };
@@ -340,12 +345,13 @@
                 sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
                 generateQRCode(orderData.total_price);
                 closeCheckoutModal();
-                document.getElementById('paymentConfirmationModal').style.display = 'flex';
+                document.getElementById('paymentConfirmationModal').classList.remove('hidden');
             }
 
             function generateQRCode(amount) {
-                document.getElementById('qrCodeContainer').innerHTML = '';
-                const qr = new QRCode(document.getElementById('qrCodeContainer'), {
+                const qrCodeContainer = document.getElementById('qrCodeContainer');
+                qrCodeContainer.innerHTML = '';
+                new QRCode(qrCodeContainer, {
                     text: `https://payment.example.com?amount=${amount}`,
                     width: 200,
                     height: 200
@@ -355,7 +361,7 @@
             async function submitPayment() {
                 const paymentProof = document.getElementById('paymentProof').files[0];
                 const orderData = JSON.parse(sessionStorage.getItem('pendingOrder'));
-
+                
                 if (!paymentProof) {
                     Swal.fire('Error!', 'Harap upload bukti pembayaran', 'error');
                     return;
@@ -364,7 +370,7 @@
                 const formData = new FormData();
                 formData.append('payment_proof', paymentProof);
                 formData.append('order_data', JSON.stringify(orderData));
-
+                
                 try {
                     const response = await fetch('/confirm-payment', {
                         method: 'POST',
@@ -373,13 +379,13 @@
                         },
                         body: formData
                     });
-
                     const result = await response.json();
+                    
                     if (result.success) {
                         document.getElementById('customerName').textContent = "{{ Auth::user()->name }}";
                         document.getElementById('orderDate').textContent = new Date().toLocaleString();
                         document.getElementById('orderStatus').textContent = 'PAID';
-                        document.getElementById('orderConfirmationModal').style.display = 'flex';
+                        document.getElementById('orderConfirmationModal').classList.remove('hidden');
                         closePaymentModal();
                         clearCart();
                     }

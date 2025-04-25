@@ -6,7 +6,7 @@ use App\Models\Table;
 use App\Models\Toping;
 use Illuminate\Http\Request;
 
-class UserController extends Controller
+class userInterfaceController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,7 +15,7 @@ class UserController extends Controller
     {
         $topings = Toping::all();
         $tables = Table::select('id', 'number')->orderBy('number')->get();
-        return view('page.user.index', [
+        return view('page.user_interface.index', [
             'topings' => $topings,
             'tables' => $tables,
         ]);

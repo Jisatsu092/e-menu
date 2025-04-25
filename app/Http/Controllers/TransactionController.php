@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
@@ -158,5 +159,35 @@ class TransactionController extends Controller
         return response()->json(['success' => 'Status updated to Proses']);
     }
 
-
+    public function confirmPayment(Request $request)
+    {
+        $request->validate([
+            'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'order_data' => 'required'
+        ]);
+    
+        DB::beginTransaction();
+        try {
+            $orderData = json_decode($request->order_data);
+            $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
+            
+            Transaction::create([
+                'user_id' => Auth::id(),
+                'table_id' => $orderData->table_id,
+                'bowl_size' => $orderData->bowl_size,
+                'spiciness_level' => $orderData->spiciness_level,
+                'total_price' => $orderData->total_price,
+                'payment_proof' => $proofPath,
+                'status' => 'paid'
+            ]);
+    
+            Table::find($orderData->table_id)->update(['status' => 'occupied']);
+            
+            DB::commit();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

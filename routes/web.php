@@ -7,6 +7,7 @@ use App\Http\Controllers\TableController;
 use App\Http\Controllers\TopingController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\userInterfaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,7 +17,13 @@ Route::get('/', function () {
 Route::resource('category', CategoryController::class)->middleware('auth');
 Route::resource('table', TableController::class)->middleware('auth');
 Route::resource('toping', TopingController::class)->middleware('auth');
-Route::resource('user', UserController::class)->middleware('auth');
+Route::resource('userInterface', userInterfaceController::class)->middleware('auth');
+
+Route::post('/confirm-payment', [TransactionController::class, 'confirmPayment'])
+     ->middleware('auth')
+     ->name('confirm.payment');
+
+     
 
 Route::get('/beranda', function () {
     return view('beranda');

@@ -92,16 +92,16 @@ class="bg-white border-b border-gray-100 shadow-sm">
                 <div class="relative hidden sm:block" x-data="{ userOpen: false }" @click.outside="userOpen = false">
                     <button @click="userOpen = !userOpen" 
                         class="flex items-center px-4 py-2 rounded-md text-gray-600 hover:bg-red-50 transition">
-                        User
+                        User Interface
                         <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
                         </svg>
                     </button>
                     <div x-show="userOpen" x-transition 
                         class="absolute mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-100">
-                        <a href="{{ route('user.index') }}" 
+                        <a href="{{ route('userInterface.index') }}" 
                             class="block px-4 py-2 text-gray-700 hover:bg-red-100 transition">
-                            Manage Users
+                            Tampilan User
                         </a>
                     </div>
                 </div>
@@ -245,7 +245,7 @@ class="bg-white border-b border-gray-100 shadow-sm">
                     </svg>
                 </button>
                 <div x-show="mobileUserOpen" x-collapse class="ml-4 mt-2">
-                    <a href="{{ route('user.index') }}" 
+                    <a href="{{ route('userInterface.index') }}" 
                         class="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
                         Manage Users
                     </a>
