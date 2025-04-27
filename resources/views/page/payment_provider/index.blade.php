@@ -10,7 +10,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-2 border-blue-600">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-6">
-                        <x-show-entries :route="route('payment-providers.index')" :search="request()->search" class="w-full md:w-auto" />
+                        <x-show-entries :route="route('payment_providers.index')" :search="request()->search" class="w-full md:w-auto" />
                         <h3 class="text-lg font-medium text-blue-600">DAFTAR PAYMENT PROVIDER</h3>
                         <button onclick="toggleModal('createProviderModal')"
                             class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg shadow-md">
@@ -94,7 +94,7 @@
                 <button onclick="toggleModal('createProviderModal')"
                     class="text-blue-600 hover:text-blue-800 text-2xl">&times;</button>
             </div>
-            <form id="createProviderForm" action="{{ route('payment-providers.store') }}" method="POST" class="p-6" enctype="multipart/form-data">
+            <form id="createProviderForm" action="{{ route('payment_providers.store') }}" method="POST" class="p-6" enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-1 gap-6">
                     <div>
@@ -248,7 +248,7 @@
         function editProviderModal(button) {
             const id = button.dataset.id;
             const form = document.getElementById('editProviderForm');
-            form.action = `/payment-providers/${id}`;
+            form.action = `/payment_providers/${id}`;
 
             // Isi data ke form
             document.getElementById('name_edit').value = button.dataset.name;
@@ -275,7 +275,7 @@
 
         // Fungsi Toggle Status
         async function toggleStatus(id) {
-            const response = await fetch(`/payment-providers/${id}/toggle-status`, {
+            const response = await fetch(`/payment_providers/${id}/toggle-status`, {
                 method: 'PUT',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -332,7 +332,7 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch(`/payment-providers/${id}`, {
+                    fetch(`/payment_providers/${id}`, {
                             method: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content

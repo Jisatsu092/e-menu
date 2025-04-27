@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PaymentProvider;
 use App\Models\Table;
 use App\Models\Toping;
 use Illuminate\Http\Request;
@@ -14,10 +15,12 @@ class userInterfaceController extends Controller
     public function index()
     {
         $topings = Toping::all();
+        $paymentProviders = PaymentProvider::all();
         $tables = Table::select('id', 'number')->orderBy('number')->get();
         return view('page.user_interface.index', [
             'topings' => $topings,
             'tables' => $tables,
+            'paymentProviders' => $paymentProviders
         ]);
     }
 

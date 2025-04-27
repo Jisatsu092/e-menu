@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use App\Models\Table;
 use App\Models\User;
+use App\Models\PaymentProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -19,7 +20,7 @@ class TransactionController extends Controller
             $entries = request('entries', 10);
 
 
-            $transactions = Transaction::with('table', 'user')
+            $transactions = Transaction::with('table', 'user', 'paymentProvider')
                 ->when($search, function ($query) use ($search) {
                     $query->whereHas('table', function ($q) use ($search) {
                         $q->where('number', 'like', "%$search%");
@@ -34,9 +35,11 @@ class TransactionController extends Controller
             $availableTables = Table::where('status', 'available')->get();
             $tables = Table::all();
             $users = User::all();
+            $paymentProviders = PaymentProvider::all();
 
             return view('page.transaction.index', [
                 'transactions' => $transactions,
+                'paymentProviders' => $paymentProviders,
                 'availableTables' => $availableTables,
                 'tables' => $tables,
                 'users' => $users,
@@ -48,74 +51,98 @@ class TransactionController extends Controller
                 ->with('error_message', 'Error: ' . $e->getMessage());
         }
     }
-
     public function store(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id', // Pastikan user_id ada
-            'table_id' => 'required|exists:tables,id',
-            'total_price' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,paid,cancelled,proses'
-        ]);
-
-        DB::beginTransaction();
         try {
-            $table = Table::findOrFail($request->table_id);
-            $user = User::findOrFail($request->user_id); // Pastikan user valid
-
-            $transaction = Transaction::create([
-                'user_id' => $user->id,
-                'table_id' => $request->table_id,
-                'total_price' => $request->total_price,
-                'status' => $request->status
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'table_id' => 'required|exists:tables,id',
+                'total_price' => 'required|numeric|min:0',
+                'status' => 'required|in:pending,proses,paid,cancelled',
+                'payment_provider_id' => 'required|exists:payment_providers,id',
+                'spiciness_level' => 'required|in:mild,medium,hot,extreme',
+                'bowl_size' => 'required|in:small,medium,large',
+                'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048'
             ]);
 
-            // Update status meja
-            $table->update([
-                'status' => ($request->status === 'paid') ? 'available' : 'occupied'
-            ]);
+            $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
+            $transaction = Transaction::create($validated + ['payment_proof' => $proofPath]);
 
-            DB::commit();
-            return redirect()->route('transaction.index')
-                ->with('success', 'Transaksi berhasil ditambahkan');
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaksi berhasil dibuat',
+                'data' => $transaction
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+                'message' => 'Validasi gagal'
+            ], 422);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->route('transaction.index')
-                ->with('error', 'Gagal menambahkan transaksi: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
     }
 
+    public function updateStatus(Request $request, Transaction $transaction)
+    {
+        try {
+            $request->validate(['status' => 'required|in:pending,proses,paid,cancelled']);
+
+            $transaction->update(['status' => $request->status]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status berhasil diperbarui'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Di TransactionController.php - method update
     public function update(Request $request, $id)
     {
         $request->validate([
             'table_id' => 'required|exists:tables,id',
             'total_price' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,paid,cancelled,proses'
+            'status' => 'required|in:pending,paid,cancelled,proses',
+            'payment_provider_id' => 'required|exists:payment_providers,id',
+            'spiciness_level' => 'required|in:mild,medium,hot,extreme',
+            'payment_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'bowl_size' => 'required|in:small,medium,large',
         ]);
 
         DB::beginTransaction();
         try {
             $transaction = Transaction::findOrFail($id);
-            $table = $transaction->table;
+            $data = $request->all();
 
-            if ($request->status !== $transaction->status) {
-                $newStatus = ($request->status === 'paid') ? 'available' : 'occupied';
-                $table->update(['status' => $newStatus]);
+            if ($request->hasFile('payment_proof')) {
+                $data['payment_proof'] = $request->file('payment_proof')->store('payment_proofs', 'public');
             }
 
-            $transaction->update($request->all());
+            // Update status meja
+            if ($request->status !== $transaction->status) {
+                $newStatus = ($request->status === 'paid') ? 'available' : 'occupied';
+                $transaction->table->update(['status' => $newStatus]);
+            }
+
+            $transaction->update($data);
 
             DB::commit();
             return redirect()->route('transaction.index')
                 ->with('message_insert', 'Transaksi berhasil diperbarui');
-        } catch (ModelNotFoundException $e) {
-            DB::rollBack();
-            return redirect()->route('error.index')
-                ->with('error_message', 'Transaksi tidak ditemukan');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('error.index')
-                ->with('error_message', 'Gagal memperbarui transaksi: ' . $e->getMessage());
+            return redirect()->route('transaction.index')
+                ->with('error', 'Gagal memperbarui transaksi: ' . $e->getMessage());
         }
     }
 
@@ -165,12 +192,12 @@ class TransactionController extends Controller
             'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'order_data' => 'required'
         ]);
-    
+
         DB::beginTransaction();
         try {
             $orderData = json_decode($request->order_data);
             $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
-            
+
             Transaction::create([
                 'user_id' => Auth::id(),
                 'table_id' => $orderData->table_id,
@@ -180,9 +207,9 @@ class TransactionController extends Controller
                 'payment_proof' => $proofPath,
                 'status' => 'paid'
             ]);
-    
+
             Table::find($orderData->table_id)->update(['status' => 'occupied']);
-            
+
             DB::commit();
             return response()->json(['success' => true]);
         } catch (\Exception $e) {

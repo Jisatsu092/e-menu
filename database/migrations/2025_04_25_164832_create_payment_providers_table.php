@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('account_name');
             $table->string('type')->comment('e-wallet, bank, etc');
             $table->text('instructions')->nullable();
+            $table->string('logo')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

@@ -1,28 +1,49 @@
 <x-app-layout>
     <!DOCTYPE html>
     <html lang="en">
+
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ajnira Ramen - Pemesanan</title>
+        <title>Warung Seblak Ajnira - Pemesanan</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
         <style>
             .animate-bounce-in {
                 animation: bounceIn 0.3s ease;
             }
+
             @keyframes bounceIn {
-                0% { transform: scale(0.9); opacity: 0; }
-                50% { transform: scale(1.05); }
-                100% { transform: scale(1); opacity: 1; }
+                0% {
+                    transform: scale(0.9);
+                    opacity: 0;
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+
+            .payment-detail {
+                transition: all 0.2s ease;
+            }
+
+            .copy-number:hover {
+                background-color: #f3f4f6;
+                cursor: pointer;
             }
         </style>
     </head>
+
     <body class="bg-gray-100">
         <!-- Modal Konfirmasi Pesanan -->
-        <div id="checkoutModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white rounded-lg p-6 w-full max-w-lg animate-bounce-in mx-auto">
+        <div id="checkoutModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md animate-bounce-in mx-4">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
                     <h3 class="text-xl font-bold text-red-500">Konfirmasi Pesanan</h3>
                     <button onclick="closeCheckoutModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
@@ -32,38 +53,26 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Nama Pelanggan</label>
-                            <input type="text" value="{{ Auth::user()->name }}" disabled 
-                                   class="mt-1 block w-full rounded-md bg-gray-100 p-2">
+                            <input type="text" value="{{ Auth::user()->name }}" disabled
+                                class="mt-1 block w-full rounded-md bg-gray-100 p-2">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Nomor Meja</label>
-                            <select id="tableNumber" required
-                                class="mt-1 block w-full rounded-md border p-2">
+                            <select id="tableNumber" required class="mt-1 block w-full rounded-md border p-2">
                                 <option value="">Pilih Meja</option>
-                                @foreach($tables as $table)
-                                <option value="{{ $table->id }}">Meja {{ $table->number }}</option>
+                                @foreach ($tables as $table)
+                                    <option value="{{ $table->id }}">Meja {{ $table->number }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Ukuran Mangkuk</label>
-                            <select id="bowlSize" required
-                                class="mt-1 block w-full rounded-md border p-2">
-                                <option value="">Pilih Ukuran</option>
-                                <option value="small">Kecil</option>
-                                <option value="medium">Sedang</option>
-                                <option value="large">Besar</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Tingkat Kepedasan</label>
-                            <select id="spicinessLevel" required
-                                class="mt-1 block w-full rounded-md border p-2">
+                            <label class="block text-sm font-medium text-gray-700">Level Pedas</label>
+                            <select id="spicinessLevel" required class="mt-1 block w-full rounded-md border p-2">
                                 <option value="">Pilih Level</option>
-                                <option value="mild">Ringan</option>
-                                <option value="medium">Sedang</option>
-                                <option value="hot">Pedas</option>
-                                <option value="extreme">Ekstrem</option>
+                                <option value="mild">Pedas Level 1</option>
+                                <option value="medium">Pedas Level 2</option>
+                                <option value="hot">Pedas Level 3</option>
+                                <option value="extreme">Pedas Level 4</option>
                             </select>
                         </div>
                         <div class="border rounded-lg p-3">
@@ -81,8 +90,7 @@
                                 class="px-4 py-2 border rounded-md hover:bg-gray-50">
                                 Batal
                             </button>
-                            <button type="submit" 
-                                class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+                            <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
                                 Bayar Sekarang
                             </button>
                         </div>
@@ -92,21 +100,69 @@
         </div>
 
         <!-- Modal Konfirmasi Pembayaran -->
-        <div id="paymentConfirmationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white rounded-lg p-6 w-full max-w-lg animate-bounce-in">
+        <div id="paymentConfirmationModal"
+            class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md animate-bounce-in mx-4">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 class="text-xl font-bold text-red-500">Konfirmasi Pembayaran</h3>
+                    <h3 class="text-xl font-bold text-red-500">Pembayaran</h3>
                     <button onclick="closePaymentModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
                 <div class="space-y-4">
-                    <div id="qrCodeContainer" class="flex justify-center mb-4"></div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Upload Bukti Pembayaran</label>
-                        <input type="file" id="paymentProof" accept="image/*" 
-                               class="mt-1 block w-full rounded-md border p-2">
+                        <label class="block text-sm font-medium text-gray-700">Metode Pembayaran</label>
+                        <!-- Perubahan di sini -->
+                        <select id="paymentMethod" onchange="showPaymentDetails()"
+                            class="mt-1 block w-full rounded-md border p-2">
+                            <option value="">Pilih Pembayaran</option>
+                            @foreach ($paymentProviders->where('is_active', true) as $provider)
+                                <option value="{{ $provider->id }}">{{ $provider->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <button onclick="submitPayment()" 
-                            class="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600">
+
+                    <div id="paymentDetails" class="hidden space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <img id="providerLogo" src="" class="w-12 h-12 object-contain rounded-lg">
+                            <div>
+                                <p class="font-bold" id="providerName"></p>
+                                <p class="text-sm text-gray-500" id="providerType"></p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Nomor Rekening</p>
+                                <div class="copy-number bg-gray-50 rounded-lg p-2" onclick="copyToClipboard(this)">
+                                    <span class="font-mono text-gray-800" id="accountNumber"></span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Atas Nama</p>
+                                <p class="font-medium text-gray-800" id="accountName"></p>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Petunjuk Pembayaran</p>
+                                <p class="text-sm text-gray-800" id="instructions"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between mb-4">
+                            <span class="font-bold">Total Pembayaran:</span>
+                            <span id="paymentTotal" class="font-bold text-red-500">Rp0</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Upload Bukti Transfer</label>
+                            <input type="file" id="paymentProof" accept="image/*"
+                                class="mt-1 block w-full rounded-md border p-2">
+                        </div>
+                    </div>
+
+                    <button onclick="submitPayment()"
+                        class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors">
                         Konfirmasi Pembayaran
                     </button>
                 </div>
@@ -114,43 +170,45 @@
         </div>
 
         <!-- Modal Pesanan Berhasil -->
-        <div id="orderConfirmationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white rounded-lg p-6 w-full max-w-lg animate-bounce-in">
+        <div id="orderConfirmationModal"
+            class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md animate-bounce-in mx-4">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
                     <h3 class="text-xl font-bold text-red-500">Pesanan Berhasil</h3>
                     <button onclick="closeOrderModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
                 <div class="space-y-4">
-                    <div>
-                        <p>Nama: <span id="customerName" class="font-bold">{{ Auth::user()->name }}</span></p>
-                        <p>Tanggal: <span id="orderDate">{{ now()->format('d/m/Y H:i') }}</span></p>
-                        <p>Status: <span id="orderStatus" class="font-bold text-green-500">Dibayar</span></p>
+                    <div class="space-y-2">
+                        <p>Nama: <span class="font-bold">{{ Auth::user()->name }}</span></p>
+                        <p>Tanggal: <span>{{ now()->format('d/m/Y H:i') }}</span></p>
+                        <p>Status: <span class="font-bold text-green-500">Dibayar</span></p>
                     </div>
-                    <button onclick="window.print()" 
-                            class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">
+                    <button onclick="window.print()"
+                        class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">
                         Cetak Pesanan
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="container mx-auto p-6">
-            <!-- Header dengan Keranjang -->
-            <div class="flex justify-between items-center mb-12">
+        <!-- Konten Utama -->
+        <div class="container mx-auto p-4">
+            <div class="flex justify-between items-center mb-8">
                 <div class="text-left">
-                    <h1 class="text-4xl font-bold text-red-500 mb-2">🍜 Ajnira Ramen</h1>
-                    <p class="text-gray-600">Pilih topping favorit Anda</p>
+                    <h1 class="text-3xl font-bold text-red-500 mb-1">🍲 Warung Seblak Ajnira</h1>
+                    <p class="text-gray-600">Pilih topping seblak favoritmu</p>
                 </div>
-                <div class="relative mr-8">
-                    <button id="cartButton" onclick="toggleCart()" 
-                            class="bg-red-500 text-white p-4 rounded-full shadow-lg relative hover:bg-red-600">
+                <div class="relative">
+                    <button id="cartButton" onclick="toggleCart()"
+                        class="bg-red-500 text-white p-3 rounded-full shadow-lg relative hover:bg-red-600">
                         🛒
-                        <span id="cartBadge" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">0</span>
+                        <span id="cartBadge"
+                            class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">0</span>
                     </button>
                     <div id="cartDropdown" class="hidden mt-2 w-72 bg-white rounded-lg shadow-xl absolute right-0">
                         <div class="p-4">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-bold">Keranjang Kamu</h3>
+                                <h3 class="text-lg font-bold">Keranjang</h3>
                                 <button onclick="clearCart()" class="text-red-500 text-sm">Hapus Semua</button>
                             </div>
                             <div id="cartItems" class="space-y-3 max-h-60 overflow-y-auto"></div>
@@ -159,8 +217,8 @@
                                     <span class="font-medium">Total:</span>
                                     <span id="cartTotal" class="font-bold text-red-500">Rp0</span>
                                 </div>
-                                <button onclick="openCheckoutModal()" 
-                                        class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600">
+                                <button onclick="openCheckoutModal()"
+                                    class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600">
                                     Checkout
                                 </button>
                             </div>
@@ -170,36 +228,37 @@
             </div>
 
             <!-- Daftar Topping -->
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                @foreach($topings as $toping)
-                <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-                    <div class="relative h-48 rounded-lg overflow-hidden mb-4">
-                        @if($toping->image)
-                            <img src="{{ asset('storage/' . $toping->image) }}" alt="{{ $toping->name }}" 
-                                 class="w-full h-full object-cover">
-                        @else
-                            <div class="w-full h-full bg-gray-200 animate-pulse"></div>
-                        @endif
-                        <div class="absolute bottom-2 right-2 px-3 py-1 bg-black bg-opacity-50 text-white rounded-full text-sm">
-                            Stok: <span id="stock-{{ $toping->id }}">{{ $toping->stock }}</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach ($topings as $toping)
+                    <div class="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-shadow">
+                        <div class="relative h-40 rounded-lg overflow-hidden mb-3">
+                            @if ($toping->image)
+                                <img src="{{ asset('storage/' . $toping->image) }}" alt="{{ $toping->name }}"
+                                    class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full bg-gray-200 animate-pulse"></div>
+                            @endif
+                            <div
+                                class="absolute bottom-1 right-1 px-2 py-0.5 bg-black bg-opacity-50 text-white rounded-full text-xs">
+                                Stok: <span id="stock-{{ $toping->id }}">{{ $toping->stock }}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="text-gray-800">
-                        <h3 class="text-xl font-bold mb-2">{{ $toping->name }}</h3>
-                        <div class="flex justify-between items-center">
-                            <p class="text-2xl font-bold text-red-500">
-                                Rp{{ number_format($toping->price, 0, ',', '.') }}
-                            </p>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="updateQuantity('{{ $toping->id }}', -1, {{ $toping->price }})" 
-                                        class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300">-</button>
-                                <span id="qty-{{ $toping->id }}" class="px-3">0</span>
-                                <button onclick="updateQuantity('{{ $toping->id }}', 1, {{ $toping->price }})" 
-                                        class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">+</button>
+                        <div class="text-gray-800">
+                            <h3 class="text-lg font-bold mb-1">{{ $toping->name }}</h3>
+                            <div class="flex justify-between items-center">
+                                <p class="text-xl font-bold text-red-500">
+                                    Rp{{ number_format($toping->price, 0, ',', '.') }}
+                                </p>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="updateQuantity('{{ $toping->id }}', -1, {{ $toping->price }})" ...
+                                        class="bg-gray-200 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-300">-</button>
+                                    <span id="qty-{{ $toping->id }}" class="px-2">0</span>
+                                    <button onclick="updateQuantity('{{ $toping->id }}', 1, {{ $toping->price }})" ...
+                                        class="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600">+</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 @endforeach
             </div>
         </div>
@@ -207,6 +266,7 @@
         <script>
             let cart = [];
             let cartVisible = false;
+            const paymentProviders = @json($paymentProviders->where('is_active', true));
 
             // Fungsi Keranjang
             function updateCartDisplay() {
@@ -236,7 +296,7 @@
                 const itemIndex = cart.findIndex(item => item.id === id);
                 const stockElement = document.getElementById(`stock-${id}`);
                 let currentStock = parseInt(stockElement.textContent);
-                
+
                 if (itemIndex > -1) {
                     const newQty = cart[itemIndex].quantity + change;
                     if (newQty < 0) return;
@@ -253,7 +313,8 @@
                     }
                     cart.push({
                         id: id,
-                        name: document.querySelector(`#qty-${id}`).parentElement.parentElement.parentElement.querySelector('h3').textContent,
+                        name: document.querySelector(`#qty-${id}`).parentElement.parentElement.parentElement
+                            .querySelector('h3').textContent,
                         price: price,
                         quantity: 1
                     });
@@ -320,50 +381,86 @@
                 document.getElementById('orderConfirmationModal').classList.add('hidden');
             }
 
+            // Fungsi Copy
+            function copyToClipboard(element) {
+                const text = element.querySelector('span').innerText;
+                try {
+                    navigator.clipboard.writeText(text).then(() => {
+                        element.style.backgroundColor = '#DCFCE7';
+                        setTimeout(() => {
+                            element.style.backgroundColor = '#F3F4F6';
+                        }, 1000);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Tersalin!',
+                            text: 'Nomor rekening berhasil disalin',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    });
+                } catch (err) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal menyalin',
+                        text: 'Browser tidak mendukung clipboard API',
+                    });
+                }
+            }
+
+            // Fungsi Tampilkan Detail Pembayaran
+            function showPaymentDetails() {
+                const providerId = document.getElementById('paymentMethod').value;
+                const provider = activePaymentProviders.find(p => p.id == providerId);
+                const paymentDetails = document.getElementById('paymentDetails');
+
+                if (provider) {
+                    paymentDetails.classList.remove('hidden');
+                    document.getElementById('providerLogo').src = provider.logo ?
+                        "{{ asset('storage/') }}/" + provider.logo : '';
+                    document.getElementById('providerName').textContent = provider.name;
+                    document.getElementById('providerType').textContent = provider.type;
+                    document.getElementById('accountNumber').textContent = provider.account_number;
+                    document.getElementById('accountName').textContent = provider.account_name;
+                    document.getElementById('instructions').textContent = provider.instructions;
+                } else {
+                    paymentDetails.classList.add('hidden');
+                }
+            }
+
             // Proses Pembayaran
             async function processPayment(e) {
                 e.preventDefault();
                 const tableNumber = document.getElementById('tableNumber').value;
-                const bowlSize = document.getElementById('bowlSize').value;
                 const spicinessLevel = document.getElementById('spicinessLevel').value;
-                
-                if (!tableNumber || !bowlSize || !spicinessLevel) {
+
+                if (!tableNumber || !spicinessLevel) {
                     Swal.fire('Error!', 'Harap lengkapi semua field!', 'error');
                     return;
                 }
 
                 closeCheckoutModal();
                 document.getElementById('paymentConfirmationModal').classList.remove('hidden');
-                
+
                 const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-                generateQRCode(total);
-                
+                document.getElementById('paymentTotal').textContent = `Rp${total.toLocaleString('id-ID')}`;
+
                 sessionStorage.setItem('pendingOrder', JSON.stringify({
                     table_id: tableNumber,
-                    bowl_size: bowlSize,
                     spiciness_level: spicinessLevel,
                     items: cart,
                     total_price: total
                 }));
             }
 
-            function generateQRCode(amount) {
-                const qrCodeContainer = document.getElementById('qrCodeContainer');
-                qrCodeContainer.innerHTML = '';
-                new QRCode(qrCodeContainer, {
-                    text: `Pembayaran: Rp${amount.toLocaleString('id-ID')}`,
-                    width: 200,
-                    height: 200,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-            }
-
             async function submitPayment() {
                 const paymentProof = document.getElementById('paymentProof').files[0];
+                const providerId = document.getElementById('paymentMethod').value;
                 const orderData = JSON.parse(sessionStorage.getItem('pendingOrder'));
-                
+
+                if (!providerId) {
+                    Swal.fire('Error!', 'Harap pilih metode pembayaran', 'error');
+                    return;
+                }
                 if (!paymentProof) {
                     Swal.fire('Error!', 'Harap upload bukti pembayaran', 'error');
                     return;
@@ -371,31 +468,34 @@
 
                 const formData = new FormData();
                 formData.append('payment_proof', paymentProof);
+                formData.append('provider_id', providerId);
                 formData.append('order_data', JSON.stringify(orderData));
-                
+
                 try {
                     const response = await fetch('/confirm-payment', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
                         },
                         body: formData
                     });
 
+                    const result = await response.json(); // Tambahkan ini untuk parsing response JSON
+
                     if (!response.ok) {
-                        throw new Error('Gagal memproses pembayaran');
+                        throw new Error(result.message || 'Gagal memproses pembayaran');
                     }
 
                     document.getElementById('orderConfirmationModal').classList.remove('hidden');
                     closePaymentModal();
                     clearCart();
-                    
+
                 } catch (error) {
                     Swal.fire('Error!', error.message, 'error');
                 }
             }
         </script>
     </body>
+
     </html>
 </x-app-layout>

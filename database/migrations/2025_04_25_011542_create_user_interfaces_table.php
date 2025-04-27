@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_interface', function (Blueprint $table) {
+        Schema::create('user_interfaces', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
         });
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_interface');
+        Schema::dropIfExists('user_interfaces');
     }
 };

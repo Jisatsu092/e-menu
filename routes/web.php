@@ -25,11 +25,15 @@ Route::post('/confirm-payment', [TransactionController::class, 'confirmPayment']
     ->middleware('auth')
     ->name('confirm.payment');
 
+    // Pastikan route untuk update status ada
+Route::put('/transaction/{transaction}/status', [TransactionController::class, 'updateStatus'])
+->name('transaction.status');
+
 // File: routes/web.php
 Route::resource('payment_providers', PaymentProviderController::class)
     ->middleware('auth');
     
-Route::put('/payment_providers/{payment_provider}/toggle-status', 
+    Route::put('/payment_providers/{payment_provider}/toggle-status', 
     [PaymentProviderController::class, 'toggleStatus'])
     ->name('payment_providers.toggle-status')
     ->middleware('auth');

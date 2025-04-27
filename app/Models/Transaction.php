@@ -24,9 +24,9 @@ class Transaction extends Model
         'status' => 'string', // atau enum jika menggunakan package enum
     ];
 
-    public function setPaymentProofAttribute($value)
+    public function getPaymentProofUrlAttribute()
     {
-        $this->attributes['payment_proof'] = $value->store('payment_proofs');
+        return $this->payment_proof ? asset('storage/' . $this->payment_proof) : null;
     }
 
     // Relasi ke tabel meja
