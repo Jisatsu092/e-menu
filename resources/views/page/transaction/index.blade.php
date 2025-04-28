@@ -17,7 +17,7 @@
                             + Transaksi Baru
                         </button>
                     </div>
-                    
+
                     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                         <table class="w-full text-sm text-left text-gray-900">
                             <thead class="text-xs text-white uppercase bg-blue-600">
@@ -46,12 +46,13 @@
                                         </td>
                                         <td class="px-6 py-4 capitalize">{{ $transaction->bowl_size }}</td>
                                         <td class="px-6 py-4 capitalize">{{ $transaction->spiciness_level }}</td>
-                                        <td class="px-6 py-4">Rp{{ number_format($transaction->total_price, 0, ',', '.') }}</td>
                                         <td class="px-6 py-4">
-                                            @if($transaction->paymentProvider)
+                                            Rp{{ number_format($transaction->total_price, 0, ',', '.') }}</td>
+                                        <td class="px-6 py-4">
+                                            @if ($transaction->paymentProvider)
                                                 <div class="flex items-center gap-2">
-                                                    <img src="{{ asset('storage/'.$transaction->paymentProvider->logo) }}" 
-                                                         class="w-8 h-8 object-contain rounded-lg">
+                                                    <img src="{{ asset('storage/' . $transaction->paymentProvider->logo) }}"
+                                                        class="w-8 h-8 object-contain rounded-lg">
                                                     <span>{{ $transaction->paymentProvider->name }}</span>
                                                 </div>
                                             @else
@@ -59,15 +60,16 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4">
-                                            @if($transaction->payment_proof)
-                                                <a href="{{ asset('storage/'.$transaction->payment_proof) }}" 
-                                                   target="_blank"
-                                                   class="inline-block group relative">
-                                                    <img src="{{ asset('storage/'.$transaction->payment_proof) }}" 
-                                                         class="w-16 h-16 object-cover rounded-lg border-2 border-blue-200
+                                            @if ($transaction->payment_proof)
+                                                <a href="{{ asset('storage/' . $transaction->payment_proof) }}"
+                                                    target="_blank" class="inline-block group relative">
+                                                    <img src="{{ asset('storage/' . $transaction->payment_proof) }}"
+                                                        class="w-16 h-16 object-cover rounded-lg border-2 border-blue-200
                                                                transition-transform group-hover:scale-110">
-                                                    <span class="absolute bottom-1 right-1 bg-black/50 text-white 
-                                                              text-xs px-2 py-1 rounded-full">🔍 Lihat</span>
+                                                    <span
+                                                        class="absolute bottom-1 right-1 bg-black/50 text-white 
+                                                              text-xs px-2 py-1 rounded-full">🔍
+                                                        Lihat</span>
                                                 </a>
                                             @else
                                                 -
@@ -115,7 +117,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="mt-4 text-blue-600">
                         {{ $transactions->links() }}
                     </div>
@@ -133,33 +135,39 @@
                 <button onclick="toggleModal('createTransactionModal')"
                     class="text-blue-600 hover:text-blue-800 text-2xl">&times;</button>
             </div>
-            <form id="createTransactionForm" action="{{ route('transaction.store') }}" method="POST" class="p-6" enctype="multipart/form-data">
+            <form id="createTransactionForm" action="{{ route('transaction.store') }}" method="POST" class="p-6"
+                enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="user_id_create" class="block mb-2 text-sm font-medium text-blue-600">Pilih User</label>
+                        <label for="user_id_create" class="block mb-2 text-sm font-medium text-blue-600">Pilih
+                            User</label>
                         <select name="user_id" id="user_id_create"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
                             <option value="">Pilih User</option>
                             @foreach ($users as $user)
-                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label for="table_id_create" class="block mb-2 text-sm font-medium text-blue-600">Pilih Meja</label>
+                        <label for="table_id_create" class="block mb-2 text-sm font-medium text-blue-600">Pilih
+                            Meja</label>
                         <select name="table_id" id="table_id_create"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
                             <option value="">Pilih Meja</option>
                             @foreach ($availableTables as $table)
-                                <option value="{{ $table->id }}">{{ $table->number }} - {{ strtoupper($table->status) }}</option>
+                                <option value="{{ $table->id }}">{{ $table->number }} -
+                                    {{ strtoupper($table->status) }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label for="total_price_create" class="block mb-2 text-sm font-medium text-blue-600">Total Harga</label>
+                        <label for="total_price_create" class="block mb-2 text-sm font-medium text-blue-600">Total
+                            Harga</label>
                         <input type="number" name="total_price" id="total_price_create"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             placeholder="0" step="100" required>
@@ -176,7 +184,8 @@
                         </select>
                     </div>
                     <div>
-                        <label for="payment_provider_id_create" class="block mb-2 text-sm font-medium text-blue-600">Metode Pembayaran</label>
+                        <label for="payment_provider_id_create"
+                            class="block mb-2 text-sm font-medium text-blue-600">Metode Pembayaran</label>
                         <select name="payment_provider_id" id="payment_provider_id_create"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
@@ -187,7 +196,8 @@
                         </select>
                     </div>
                     <div>
-                        <label for="bowl_size_create" class="block mb-2 text-sm font-medium text-blue-600">Ukuran Mangkok</label>
+                        <label for="bowl_size_create" class="block mb-2 text-sm font-medium text-blue-600">Ukuran
+                            Mangkok</label>
                         <select name="bowl_size" id="bowl_size_create"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
@@ -197,7 +207,8 @@
                         </select>
                     </div>
                     <div>
-                        <label for="spiciness_level_create" class="block mb-2 text-sm font-medium text-blue-600">Level Pedas</label>
+                        <label for="spiciness_level_create" class="block mb-2 text-sm font-medium text-blue-600">Level
+                            Pedas</label>
                         <select name="spiciness_level" id="spiciness_level_create"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
@@ -208,14 +219,15 @@
                         </select>
                     </div>
                     <div>
-                        <label for="payment_proof_create" class="block mb-2 text-sm font-medium text-blue-600">Bukti Transfer</label>
+                        <label for="payment_proof_create" class="block mb-2 text-sm font-medium text-blue-600">Bukti
+                            Transfer</label>
                         <input type="file" name="payment_proof" id="payment_proof_create"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             accept="image/*" required>
                     </div>
                 </div>
                 <div class="flex justify-end space-x-4 mt-6">
-                    <button type="submit" 
+                    <button type="submit"
                         class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md">
                         💾 Simpan
                     </button>
@@ -240,31 +252,36 @@
             <form id="editTransactionForm" method="POST" class="p-6" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 space-y-4 max-h-[70vh] modal-scrollable overflow-y-auto">
                     <div>
-                        <label for="user_id_edit" class="block mb-2 text-sm font-medium text-blue-600">Pilih User</label>
+                        <label for="user_id_edit" class="block mb-2 text-sm font-medium text-blue-600">Pilih
+                            User</label>
                         <select name="user_id" id="user_id_edit"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
                             <option value="">Pilih User</option>
                             @foreach ($users as $user)
-                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label for="table_id_edit" class="block mb-2 text-sm font-medium text-blue-600">Pilih Meja</label>
+                        <label for="table_id_edit" class="block mb-2 text-sm font-medium text-blue-600">Pilih
+                            Meja</label>
                         <select name="table_id" id="table_id_edit"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
                             <option value="">Pilih Meja</option>
                             @foreach ($tables as $table)
-                                <option value="{{ $table->id }}">{{ $table->number }} - {{ strtoupper($table->status) }}</option>
+                                <option value="{{ $table->id }}">{{ $table->number }} -
+                                    {{ strtoupper($table->status) }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label for="total_price_edit" class="block mb-2 text-sm font-medium text-blue-600">Total Harga</label>
+                        <label for="total_price_edit" class="block mb-2 text-sm font-medium text-blue-600">Total
+                            Harga</label>
                         <input type="number" name="total_price" id="total_price_edit"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             placeholder="0" step="100" required>
@@ -281,7 +298,8 @@
                         </select>
                     </div>
                     <div>
-                        <label for="payment_provider_id_edit" class="block mb-2 text-sm font-medium text-blue-600">Metode Pembayaran</label>
+                        <label for="payment_provider_id_edit"
+                            class="block mb-2 text-sm font-medium text-blue-600">Metode Pembayaran</label>
                         <select name="payment_provider_id" id="payment_provider_id_edit"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
@@ -292,7 +310,8 @@
                         </select>
                     </div>
                     <div>
-                        <label for="bowl_size_edit" class="block mb-2 text-sm font-medium text-blue-600">Ukuran Mangkok</label>
+                        <label for="bowl_size_edit" class="block mb-2 text-sm font-medium text-blue-600">Ukuran
+                            Mangkok</label>
                         <select name="bowl_size" id="bowl_size_edit"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
@@ -302,7 +321,8 @@
                         </select>
                     </div>
                     <div>
-                        <label for="spiciness_level_edit" class="block mb-2 text-sm font-medium text-blue-600">Level Pedas</label>
+                        <label for="spiciness_level_edit" class="block mb-2 text-sm font-medium text-blue-600">Level
+                            Pedas</label>
                         <select name="spiciness_level" id="spiciness_level_edit"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required>
@@ -313,7 +333,8 @@
                         </select>
                     </div>
                     <div>
-                        <label for="payment_proof_edit" class="block mb-2 text-sm font-medium text-blue-600">Bukti Transfer</label>
+                        <label for="payment_proof_edit" class="block mb-2 text-sm font-medium text-blue-600">Bukti
+                            Transfer</label>
                         <input type="file" name="payment_proof" id="payment_proof_edit"
                             class="bg-white border-2 border-blue-600 text-blue-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             accept="image/*">
@@ -343,7 +364,7 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.plugin(AlpineCollapse);
-            
+
             Alpine.data('transaction', () => ({
                 open: false,
                 toggle() {
@@ -383,7 +404,7 @@
             document.getElementById('spiciness_level_edit').value = transactionData.spiciness_level;
 
             const currentProof = document.querySelector('#current_proof img');
-            if(transactionData.payment_proof) {
+            if (transactionData.payment_proof) {
                 currentProof.src = "{{ asset('storage') }}/" + transactionData.payment_proof;
                 document.getElementById('current_proof').classList.remove('hidden');
             }
@@ -393,7 +414,9 @@
 
         window.processTransaction = async function(id) {
             try {
-                const { value: status } = await Swal.fire({
+                const {
+                    value: status
+                } = await Swal.fire({
                     title: 'Ubah Status Transaksi',
                     input: 'select',
                     inputOptions: {
@@ -414,7 +437,9 @@
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify({
+                        status
+                    })
                 });
 
                 const contentType = response.headers.get('content-type');
@@ -429,14 +454,16 @@
                 }
 
                 window.location.reload();
-                
+
             } catch (error) {
                 Swal.fire('Error!', error.message, 'error');
             }
         };
 
         window.confirmDelete = async function(id) {
-            const { isConfirmed } = await Swal.fire({
+            const {
+                isConfirmed
+            } = await Swal.fire({
                 title: 'Hapus Transaksi?',
                 text: "Data tidak bisa dikembalikan!",
                 icon: 'warning',
@@ -465,7 +492,7 @@
         window.submitTransactionForm = async function(formId) {
             const form = document.getElementById(formId);
             const formData = new FormData(form);
-            
+
             try {
                 const response = await fetch(form.action, {
                     method: form.method,
@@ -486,7 +513,7 @@
                 if (!response.ok) {
                     throw new Error(result.message || 'Terjadi kesalahan server');
                 }
-                
+
                 window.location.reload();
             } catch (error) {
                 Swal.fire({
@@ -497,28 +524,39 @@
                 console.error('Error Details:', error);
             }
         };
-        function applyDateFilter() {
-            const startDate = document.getElementById('start_date').value;
-            const endDate = document.getElementById('end_date').value;
-            window.location.href = `{{ route('transaction.report') }}?start=${startDate}&end=${endDate}`;
-        }
-
-        function printTransaction(id) {
-            fetch(`/transaction/${id}/print`)
-                .then(response => response.text())
-                .then(html => {
-                    const printSection = document.getElementById('print-section');
-                    printSection.innerHTML = html;
-                    window.print();
-                });
-        }
     </script>
 
     <style>
-        .modal-transition { transition: opacity 0.3s ease; }
-        .proof-transition { transition: transform 0.3s ease, opacity 0.3s ease; }
-        .modal-overlay { z-index: 9998; }
-        .modal-content { z-index: 9999; }
-        .capitalize { text-transform: capitalize; }
+        .modal-scrollable {
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE/Edge */
+        }
+
+        .modal-scrollable::-webkit-scrollbar {
+            display: none;
+            /* Chrome/Safari */
+        }
+
+        .modal-transition {
+            transition: opacity 0.3s ease;
+        }
+
+        .proof-transition {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .modal-overlay {
+            z-index: 9998;
+        }
+
+        .modal-content {
+            z-index: 9999;
+        }
+
+        .capitalize {
+            text-transform: capitalize;
+        }
     </style>
 </x-app-layout>

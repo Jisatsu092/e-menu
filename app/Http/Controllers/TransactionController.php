@@ -6,6 +6,7 @@ use App\Models\Transaction;
 use App\Models\Table;
 use App\Models\User;
 use App\Models\PaymentProvider;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -216,5 +217,54 @@ class TransactionController extends Controller
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function report(Request $request)
+    {
+        $minDate = Transaction::min('created_at') ?? now();
+        $maxDate = Transaction::max('created_at') ?? now();
+
+        $query = Transaction::with(['user', 'table', 'paymentProvider'])
+            ->when($request->start && $request->end, function ($q) use ($request) {
+                return $q->whereBetween('created_at', [$request->start, $request->end]);
+            })
+            ->when($request->search, function ($q, $search) {
+                return $q->whereHas('user', function ($u) use ($search) {
+                    $u->where('name', 'like', "%$search%");
+                })
+                    ->orWhereHas('table', function ($t) use ($search) {
+                        $t->where('number', 'like', "%$search%");
+                    })
+                    ->orWhere('total_price', 'like', "%$search%");
+            });
+
+        $transactions = $query->paginate(10);
+
+        return view('page.transaction.report', [
+            'transactions' => $transactions,
+            'minDate' => $minDate ? Carbon::parse($minDate)->format('Y-m-d') : now()->toDateString(),
+            'maxDate' => $maxDate ? Carbon::parse($maxDate)->format('Y-m-d') : now()->toDateString()
+
+        ]);
+    }
+
+    public function printAll(Request $request)
+    {
+        $query = Transaction::with(['user', 'table', 'paymentProvider'])
+            ->when($request->start && $request->end, function ($q) use ($request) {
+                return $q->whereBetween('created_at', [$request->start, $request->end]);
+            });
+
+        $transactions = $query->get();
+
+        return view('page.transaction.print-all', compact('transactions'));
+    }
+
+    public function print($id)
+    {
+        $transaction = Transaction::with(['user', 'table', 'paymentProvider'])
+            ->findOrFail($id);
+
+        return view('page.transaction.print', compact('transaction'));
     }
 }

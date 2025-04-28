@@ -25,22 +25,30 @@ Route::post('/confirm-payment', [TransactionController::class, 'confirmPayment']
     ->middleware('auth')
     ->name('confirm.payment');
 
-    // Pastikan route untuk update status ada
+// Pastikan route untuk update status ada
 Route::put('/transaction/{transaction}/status', [TransactionController::class, 'updateStatus'])
-->name('transaction.status');
+    ->name('transaction.status');
 
 // File: routes/web.php
 Route::resource('payment_providers', PaymentProviderController::class)
     ->middleware('auth');
-    
-    Route::put('/payment_providers/{payment_provider}/toggle-status', 
-    [PaymentProviderController::class, 'toggleStatus'])
+
+Route::put(
+    '/payment_providers/{payment_provider}/toggle-status',
+    [PaymentProviderController::class, 'toggleStatus']
+)
     ->name('payment_providers.toggle-status')
     ->middleware('auth');
 
 Route::get('/beranda', function () {
     return view('beranda');
 })->middleware(['auth', 'verified'])->name('beranda');
+
+Route::get('/transaction/report', [TransactionController::class, 'report'])
+    ->name('transaction.report');
+
+Route::get('/transaction/print-all', [TransactionController::class, 'printAll'])
+    ->name('transaction.print.all');
 
 Route::resource('transaction', TransactionController::class);
 Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');

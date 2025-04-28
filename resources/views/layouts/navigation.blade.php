@@ -78,6 +78,7 @@
                         </button>
                         <div x-show="transactionOpen" x-transition class="absolute mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-100">
                             <a href="{{ route('transaction.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-red-100 transition">Daftar Transaksi</a>
+                            <a href="{{ route('transaction.report') }}" class="block px-4 py-2 text-gray-700 hover:bg-red-100 transition">Report Transaksi</a>
                             <a href="{{ route('payment_providers.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-red-100 transition">Payment Provider</a>
                         </div>
                     </div>
