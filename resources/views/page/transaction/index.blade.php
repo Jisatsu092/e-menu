@@ -497,6 +497,21 @@
                 console.error('Error Details:', error);
             }
         };
+        function applyDateFilter() {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            window.location.href = `{{ route('transaction.report') }}?start=${startDate}&end=${endDate}`;
+        }
+
+        function printTransaction(id) {
+            fetch(`/transaction/${id}/print`)
+                .then(response => response.text())
+                .then(html => {
+                    const printSection = document.getElementById('print-section');
+                    printSection.innerHTML = html;
+                    window.print();
+                });
+        }
     </script>
 
     <style>

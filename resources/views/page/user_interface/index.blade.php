@@ -37,6 +37,18 @@
                 background-color: #f3f4f6;
                 cursor: pointer;
             }
+
+            .modal-scrollable {
+                scrollbar-width: none;
+                /* Firefox */
+                -ms-overflow-style: none;
+                /* IE/Edge */
+            }
+
+            .modal-scrollable::-webkit-scrollbar {
+                display: none;
+                /* Chrome/Safari */
+            }
         </style>
     </head>
 
@@ -50,7 +62,7 @@
                 </div>
                 <form id="checkoutForm" onsubmit="processPayment(event)">
                     @csrf
-                    <div class="space-y-4">
+                    <div class="max-h-[70vh] overflow-y-auto modal-scrollable space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Nama Pelanggan</label>
                             <input type="text" value="{{ Auth::user()->name }}" disabled
@@ -99,7 +111,7 @@
             </div>
         </div>
 
-        <!-- Modal Konfirmasi Pembayaran -->
+        <!-- Modal Konfirmasi Pembayaran (Diperbaiki) -->
         <div id="paymentConfirmationModal"
             class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md animate-bounce-in mx-4">
@@ -107,10 +119,10 @@
                     <h3 class="text-xl font-bold text-red-500">Pembayaran</h3>
                     <button onclick="closePaymentModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-4 max-h-[70vh] modal-scrollable overflow-y-auto">
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Metode Pembayaran</label>
-                        <!-- Perubahan di sini -->
                         <select id="paymentMethod" onchange="showPaymentDetails()"
                             class="mt-1 block w-full rounded-md border p-2">
                             <option value="">Pilih Pembayaran</option>
@@ -119,7 +131,6 @@
                             @endforeach
                         </select>
                     </div>
-
                     <div id="paymentDetails" class="hidden space-y-3">
                         <div class="flex items-center space-x-3">
                             <img id="providerLogo" src="" class="w-12 h-12 object-contain rounded-lg">
@@ -128,7 +139,6 @@
                                 <p class="text-sm text-gray-500" id="providerType"></p>
                             </div>
                         </div>
-
                         <div class="space-y-2">
                             <div>
                                 <p class="text-xs text-gray-500 mb-1">Nomor Rekening</p>
@@ -136,23 +146,27 @@
                                     <span class="font-mono text-gray-800" id="accountNumber"></span>
                                 </div>
                             </div>
-
                             <div>
                                 <p class="text-xs text-gray-500 mb-1">Atas Nama</p>
                                 <p class="font-medium text-gray-800" id="accountName"></p>
                             </div>
-
                             <div>
                                 <p class="text-xs text-gray-500 mb-1">Petunjuk Pembayaran</p>
                                 <p class="text-sm text-gray-800" id="instructions"></p>
                             </div>
                         </div>
                     </div>
-
                     <div class="border-t pt-4">
-                        <div class="flex justify-between mb-4">
-                            <span class="font-bold">Total Pembayaran:</span>
-                            <span id="paymentTotal" class="font-bold text-red-500">Rp0</span>
+                        <div class="border rounded-lg p-3">
+                            <h4 class="font-medium mb-2">Detail Pesanan:</h4>
+                            <div id="paymentOrderItems" class="space-y-2 max-h-40 modal-scrollable overflow-y-auto"></div>
+                            <!-- Item pesanan muncul di sini -->
+                            <div class="mt-3 pt-2 border-t">
+                                <p class="flex justify-between font-bold">
+                                    <span>Total:</span>
+                                    <span id="paymentTotal" class="text-red-500">Rp0</span>
+                                </p>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Upload Bukti Transfer</label>
@@ -160,7 +174,6 @@
                                 class="mt-1 block w-full rounded-md border p-2">
                         </div>
                     </div>
-
                     <button onclick="submitPayment()"
                         class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors">
                         Konfirmasi Pembayaran
@@ -177,7 +190,7 @@
                     <h3 class="text-xl font-bold text-red-500">Pesanan Berhasil</h3>
                     <button onclick="closeOrderModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-4 max-h-[70vh] modal-scrollable overflow-y-auto">
                     <div class="space-y-2">
                         <p>Nama: <span class="font-bold">{{ Auth::user()->name }}</span></p>
                         <p>Tanggal: <span>{{ now()->format('d/m/Y H:i') }}</span></p>
@@ -250,10 +263,12 @@
                                     Rp{{ number_format($toping->price, 0, ',', '.') }}
                                 </p>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="updateQuantity('{{ $toping->id }}', -1, {{ $toping->price }})" ...
+                                    <button onclick="updateQuantity('{{ $toping->id }}', -1, {{ $toping->price }})"
+                                        ...
                                         class="bg-gray-200 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-300">-</button>
                                     <span id="qty-{{ $toping->id }}" class="px-2">0</span>
-                                    <button onclick="updateQuantity('{{ $toping->id }}', 1, {{ $toping->price }})" ...
+                                    <button onclick="updateQuantity('{{ $toping->id }}', 1, {{ $toping->price }})"
+                                        ...
                                         class="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600">+</button>
                                 </div>
                             </div>
@@ -410,7 +425,7 @@
             // Fungsi Tampilkan Detail Pembayaran
             function showPaymentDetails() {
                 const providerId = document.getElementById('paymentMethod').value;
-                const provider = activePaymentProviders.find(p => p.id == providerId);
+                const provider = paymentProviders.find(p => p.id == providerId);
                 const paymentDetails = document.getElementById('paymentDetails');
 
                 if (provider) {
@@ -427,7 +442,6 @@
                 }
             }
 
-            // Proses Pembayaran
             async function processPayment(e) {
                 e.preventDefault();
                 const tableNumber = document.getElementById('tableNumber').value;
@@ -438,20 +452,34 @@
                     return;
                 }
 
-                closeCheckoutModal();
-                document.getElementById('paymentConfirmationModal').classList.remove('hidden');
-
-                const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-                document.getElementById('paymentTotal').textContent = `Rp${total.toLocaleString('id-ID')}`;
-
-                sessionStorage.setItem('pendingOrder', JSON.stringify({
+                // Simpan data ke sessionStorage
+                const orderData = {
                     table_id: tableNumber,
                     spiciness_level: spicinessLevel,
                     items: cart,
-                    total_price: total
-                }));
+                    total_price: cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
+                };
+                sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
+
+                // Tampilkan item di modal pembayaran
+                const paymentOrderItems = document.getElementById('paymentOrderItems');
+                paymentOrderItems.innerHTML = cart.map(item => `
+                    <div class="flex justify-between">
+                        <span>${item.name} (${item.quantity}x)</span>
+                        <span>Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                    </div>
+                `).join('');
+
+                // Update total harga
+                document.getElementById('paymentTotal').textContent =
+                    `Rp${orderData.total_price.toLocaleString('id-ID')}`;
+
+                // Buka modal pembayaran
+                closeCheckoutModal();
+                document.getElementById('paymentConfirmationModal').classList.remove('hidden');
             }
 
+            // Fungsi submitPayment yang diperbarui
             async function submitPayment() {
                 const paymentProof = document.getElementById('paymentProof').files[0];
                 const providerId = document.getElementById('paymentMethod').value;
@@ -479,17 +507,17 @@
                         },
                         body: formData
                     });
-
-                    const result = await response.json(); // Tambahkan ini untuk parsing response JSON
+                    const result = await response.json();
 
                     if (!response.ok) {
                         throw new Error(result.message || 'Gagal memproses pembayaran');
                     }
 
+                    // Tampilkan modal sukses
                     document.getElementById('orderConfirmationModal').classList.remove('hidden');
                     closePaymentModal();
                     clearCart();
-
+                    sessionStorage.removeItem('pendingOrder');
                 } catch (error) {
                     Swal.fire('Error!', error.message, 'error');
                 }
