@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class TransactionController extends Controller
 {
@@ -19,7 +20,6 @@ class TransactionController extends Controller
         try {
             $search = request('search');
             $entries = request('entries', 10);
-
 
             $transactions = Transaction::with('table', 'user', 'paymentProvider')
                 ->when($search, function ($query) use ($search) {
@@ -52,6 +52,7 @@ class TransactionController extends Controller
                 ->with('error_message', 'Error: ' . $e->getMessage());
         }
     }
+
     public function store(Request $request)
     {
         try {
@@ -66,8 +67,20 @@ class TransactionController extends Controller
                 'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048'
             ]);
 
+            // Simpan file ke storage
             $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
-            $transaction = Transaction::create($validated + ['payment_proof' => $proofPath]);
+
+            // Buat transaksi dengan path relatif
+            $transaction = Transaction::create([
+                'user_id' => $validated['user_id'],
+                'table_id' => $validated['table_id'],
+                'total_price' => $validated['total_price'],
+                'status' => $validated['status'],
+                'payment_provider_id' => $validated['payment_provider_id'],
+                'spiciness_level' => $validated['spiciness_level'],
+                'bowl_size' => $validated['bowl_size'],
+                'payment_proof' => $proofPath // Path relatif (payment_proofs/namafile.jpg)
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -107,7 +120,6 @@ class TransactionController extends Controller
         }
     }
 
-    // Di TransactionController.php - method update
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -126,12 +138,15 @@ class TransactionController extends Controller
             $data = $request->all();
 
             if ($request->hasFile('payment_proof')) {
+                if ($transaction->payment_proof) {
+                    Storage::disk('public')->delete($transaction->payment_proof);
+                }
                 $data['payment_proof'] = $request->file('payment_proof')->store('payment_proofs', 'public');
             }
 
-            // Update status meja
+            // Perubahan logika status meja
             if ($request->status !== $transaction->status) {
-                $newStatus = ($request->status === 'paid') ? 'available' : 'occupied';
+                $newStatus = ($request->status === 'cancelled') ? 'available' : 'occupied';
                 $transaction->table->update(['status' => $newStatus]);
             }
 
@@ -152,6 +167,11 @@ class TransactionController extends Controller
         DB::beginTransaction();
         try {
             $transaction = Transaction::findOrFail($id);
+
+            // Hapus file payment proof
+            if ($transaction->payment_proof) {
+                Storage::disk('public')->delete($transaction->payment_proof);
+            }
 
             if ($transaction->status === 'paid') {
                 $transaction->table->update(['status' => 'available']);
@@ -193,24 +213,31 @@ class TransactionController extends Controller
             'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'order_data' => 'required'
         ]);
-
+    
         DB::beginTransaction();
         try {
             $orderData = json_decode($request->order_data);
+            
+            if(!isset($orderData->bowl_size)) {
+                throw new \Exception('Bowl size is required');
+            }
+    
             $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
-
-            Transaction::create([
+    
+            $transaction = Transaction::create([
                 'user_id' => Auth::id(),
                 'table_id' => $orderData->table_id,
                 'bowl_size' => $orderData->bowl_size,
                 'spiciness_level' => $orderData->spiciness_level,
                 'total_price' => $orderData->total_price,
+                'payment_provider_id' => $request->provider_id,
                 'payment_proof' => $proofPath,
                 'status' => 'paid'
             ]);
-
-            Table::find($orderData->table_id)->update(['status' => 'occupied']);
-
+    
+            // Set meja ke 'occupied' karena transaksi baru dibuat
+            $transaction->table->update(['status' => 'occupied']);
+    
             DB::commit();
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -252,7 +279,9 @@ class TransactionController extends Controller
     {
         $query = Transaction::with(['user', 'table', 'paymentProvider'])
             ->when($request->start && $request->end, function ($q) use ($request) {
-                return $q->whereBetween('created_at', [$request->start, $request->end]);
+                $start = Carbon::parse($request->start)->startOfDay();
+                $end = Carbon::parse($request->end)->endOfDay();
+                return $q->whereBetween('created_at', [$start, $end]);
             });
 
         $transactions = $query->get();
@@ -262,9 +291,31 @@ class TransactionController extends Controller
 
     public function print($id)
     {
-        $transaction = Transaction::with(['user', 'table', 'paymentProvider'])
-            ->findOrFail($id);
+        $transaction = Transaction::with([
+            'details.toping',
+            'user',
+            'table',
+            'paymentProvider'
+        ])->findOrFail($id);
 
         return view('page.transaction.print', compact('transaction'));
     }
+
+    // Contoh controller upload
+    public function uploadPayment(Request $request, $id)
+    {
+        $transaction = Transaction::find($id);
+
+        $path = $request->file('payment_proof')->store('payment_proofs', 'public');
+        $transaction->update(['payment_proof' => $path]);
+
+        return back();
+    }
+
+    public function checkStatus(Transaction $transaction)
+{
+    return response()->json([
+        'status' => $transaction->status
+    ]);
+}
 }

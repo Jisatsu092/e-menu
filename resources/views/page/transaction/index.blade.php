@@ -48,6 +48,7 @@
                                         <td class="px-6 py-4 capitalize">{{ $transaction->spiciness_level }}</td>
                                         <td class="px-6 py-4">
                                             Rp{{ number_format($transaction->total_price, 0, ',', '.') }}</td>
+                                        {{-- Di bagian tampilan payment provider --}}
                                         <td class="px-6 py-4">
                                             @if ($transaction->paymentProvider)
                                                 <div class="flex items-center gap-2">
@@ -59,16 +60,16 @@
                                                 <span class="text-red-500">-</span>
                                             @endif
                                         </td>
+
+                                        {{-- Di bagian tampilan payment proof --}}
                                         <td class="px-6 py-4">
                                             @if ($transaction->payment_proof)
                                                 <a href="{{ asset('storage/' . $transaction->payment_proof) }}"
                                                     target="_blank" class="inline-block group relative">
                                                     <img src="{{ asset('storage/' . $transaction->payment_proof) }}"
-                                                        class="w-16 h-16 object-cover rounded-lg border-2 border-blue-200
-                                                               transition-transform group-hover:scale-110">
+                                                        class="w-16 h-16 object-cover rounded-lg border-2 border-blue-200 transition-transform group-hover:scale-110">
                                                     <span
-                                                        class="absolute bottom-1 right-1 bg-black/50 text-white 
-                                                              text-xs px-2 py-1 rounded-full">🔍
+                                                        class="absolute bottom-1 right-1 bg-black/50 text-white text-xs px-2 py-1 rounded-full">🔍
                                                         Lihat</span>
                                                 </a>
                                             @else
@@ -252,7 +253,8 @@
             <form id="editTransactionForm" method="POST" class="p-6" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 space-y-4 max-h-[70vh] modal-scrollable overflow-y-auto">
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 gap-6 space-y-4 max-h-[70vh] modal-scrollable overflow-y-auto">
                     <div>
                         <label for="user_id_edit" class="block mb-2 text-sm font-medium text-blue-600">Pilih
                             User</label>
@@ -414,21 +416,18 @@
 
         window.processTransaction = async function(id) {
             try {
-                const {
-                    value: status
-                } = await Swal.fire({
-                    title: 'Ubah Status Transaksi',
-                    input: 'select',
-                    inputOptions: {
-                        'pending': 'Pending',
-                        'proses': 'Proses',
-                        'paid': 'Paid',
-                        'cancelled': 'Cancelled'
-                    },
-                    inputValidator: (value) => !value && 'Pilih status terlebih dahulu!'
+                const konfirmasi = await Swal.fire({
+                    title: 'Proses Transaksi?',
+                    text: "Status transaksi akan diubah menjadi PROSES",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Proses!',
+                    cancelButtonText: 'Batal'
                 });
 
-                if (!status) return;
+                if (!konfirmasi.isConfirmed) return;
 
                 const response = await fetch(`/transaction/${id}/status`, {
                     method: 'PUT',
@@ -438,14 +437,9 @@
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        status
+                        status: 'proses' // Langsung set status proses
                     })
                 });
-
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response tidak valid dari server');
-                }
 
                 const result = await response.json();
 
@@ -453,7 +447,15 @@
                     throw new Error(result.message || 'Gagal memperbarui status');
                 }
 
-                window.location.reload();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Status transaksi telah diubah menjadi PROSES',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
 
             } catch (error) {
                 Swal.fire('Error!', error.message, 'error');

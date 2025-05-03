@@ -59,9 +59,11 @@
                                         <td class="px-6 py-4">{{ $loop->iteration }}</td>
                                         <td class="px-6 py-4">{{ $transaction->user->name ?? '-' }}</td>
                                         <td class="px-6 py-4">{{ $transaction->table->number ?? '-' }}</td>
-                                        <td class="px-6 py-4">Rp{{ number_format($transaction->total_price, 0, ',', '.') }}</td>
                                         <td class="px-6 py-4">
-                                            <span class="px-3 py-1 rounded-full text-white 
+                                            Rp{{ number_format($transaction->total_price, 0, ',', '.') }}</td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-3 py-1 rounded-full text-white 
                                                 {{ $transaction->status == 'paid' ? 'bg-green-500' : 'bg-yellow-500' }}">
                                                 {{ ucfirst($transaction->status) }}
                                             </span>
@@ -89,31 +91,39 @@
                 body * {
                     visibility: hidden;
                 }
-                #print-section, #print-section * {
+
+                #print-section,
+                #print-section * {
                     visibility: visible;
                 }
+
                 #print-section {
                     position: absolute;
                     left: 0;
                     top: 0;
                     width: 100%;
                 }
+
                 .print-container {
                     max-width: 800px;
                     margin: 0 auto;
                     padding: 40px;
                     font-family: 'Arial', sans-serif;
                 }
+
                 .print-header {
                     text-align: center;
                     margin-bottom: 30px;
                 }
+
                 .print-table {
                     width: 100%;
                     border-collapse: collapse;
                     margin: 20px 0;
                 }
-                .print-table th, .print-table td {
+
+                .print-table th,
+                .print-table td {
                     border: 1px solid #ddd;
                     padding: 12px;
                     text-align: left;
@@ -151,12 +161,13 @@
         function printAllTransactions() {
             const startDate = document.getElementById('start_date').value;
             const endDate = document.getElementById('end_date').value;
-            
-            const url = new URL(window.location.href);
-            url.searchParams.set('start', startDate);
-            url.searchParams.set('end', endDate);
-            
-            window.open(`/transaction/print-all?${url.searchParams.toString()}`, '_blank');
+
+            const params = new URLSearchParams({
+                start: startDate,
+                end: endDate
+            });
+
+            window.open(`/transaction/print-all?${params.toString()}`, '_blank');
         }
 
         document.getElementById('search').addEventListener('input', function() {
@@ -168,7 +179,7 @@
                 const table = row.cells[2].textContent.toLowerCase();
                 const total = row.cells[3].textContent.toLowerCase();
 
-                if(user.includes(search) || table.includes(search) || total.includes(search)) {
+                if (user.includes(search) || table.includes(search) || total.includes(search)) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';

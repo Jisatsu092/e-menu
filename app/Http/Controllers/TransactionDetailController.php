@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Table;
+use App\Models\Toping;
+use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\Http\Request;
 
@@ -12,7 +15,15 @@ class TransactionDetailController extends Controller
      */
     public function index()
     {
-        //
+        $transactionDetail = TransactionDetail::latest()->paginate(10);
+        $transaction = Transaction::all();
+        $topings = Toping::all();
+        return view('page.transaction_detail.index', [
+            'details' => $transactionDetail,
+            'transaction' => $transaction,
+            'toping' => $topings
+        ]);
+        
     }
 
     /**
@@ -34,11 +45,16 @@ class TransactionDetailController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TransactionDetail $transactionDetail)
+    public function show(Transaction $transaction)
     {
-        //
+        $transaction->load([
+            'details.toping', 
+            'user', 
+            'table'
+        ]);
+        
+        return view('transactions.details.show', compact('transaction'));
     }
-
     /**
      * Show the form for editing the specified resource.
      */

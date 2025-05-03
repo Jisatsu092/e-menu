@@ -14,4 +14,9 @@ class Table extends Model
         return $this->hasMany(Toping::class);
     }
 
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
 }

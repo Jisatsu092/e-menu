@@ -11,9 +11,9 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-2 border-red-600">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-6">
-                        <x-show-entries :route="route('category.index')" :search="request()->search" class="w-full md:w-auto"></x-show-entries>
+                        <x-show-entries :route="route('table.index')" :search="request()->search" class="w-full md:w-auto"/>
                         <h3 class="text-lg font-medium text-red-600">DATA MEJA RESTORAN</h3>
-                        <button type="button" onclick="toggleModal('createTableModal')"
+                        <button type="button" onclick="createTable()"
                             class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md">
                             + Tambah Meja
                         </button>
@@ -29,25 +29,23 @@
                                     <th scope="col" class="px-6 py-3">AKSI</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @foreach ($tables as $key => $table)
-                                    <tr class="bg-white border-b hover:bg-red-50">
+                            <tbody id="tableBody">
+                                @foreach ($tables as $table)
+                                    <tr id="row-{{ $table->id }}" class="bg-white border-b hover:bg-red-50">
                                         <td class="px-6 py-4 font-semibold">{{ $loop->iteration }}</td>
                                         <td class="px-6 py-4 font-bold text-red-600">{{ $table->number }}</td>
                                         <td class="px-6 py-4">
-                                            <span
-                                                class="px-3 py-1.5 text-sm font-semibold rounded-full 
+                                            <span class="px-3 py-1.5 text-sm font-semibold rounded-full 
                                                 {{ $table->status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                                 {{ strtoupper($table->status) }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 space-x-2">
-                                            <button data-id="{{ $table->id }}" data-number="{{ $table->number }}"
-                                                data-status="{{ $table->status }}" onclick="editTableModal(this)"
+                                            <button onclick="openEditModal('{{ $table->id }}', '{{ $table->number }}', '{{ $table->status }}')"
                                                 class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-md text-sm text-white shadow">
                                                 ✏️ Edit
                                             </button>
-                                            <button onclick="tableDelete('{{ $table->id }}', '{{ $table->number }}')"
+                                            <button onclick="deleteTable('{{ $table->id }}')"
                                                 class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm text-white shadow">
                                                 🗑️ Hapus
                                             </button>
@@ -66,234 +64,192 @@
         </div>
     </div>
 
-    <!-- Modal Tambah Meja -->
-    <div id="createTableModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-        <div class="fixed inset-0 bg-black opacity-50"></div>
-        <div class="relative bg-white rounded-lg shadow-2xl mx-4 md:mx-auto md:w-1/3 border-2 border-red-600">
-            <div class="flex items-start justify-between p-6 border-b-2 border-red-600">
-                <h3 class="text-xl font-semibold text-red-600">🆕 Tambah Meja Baru</h3>
-                <button type="button" onclick="toggleModal('createTableModal')"
-                    class="text-red-600 hover:text-red-800 text-2xl">
-                    &times;
-                </button>
-            </div>
-            <form id="createForm" action="{{ route('table.store') }}" method="POST" class="p-6">
+    <!-- Edit Modal -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 class="text-xl font-bold text-red-600 mb-4">Edit Meja</h3>
+            <form id="editForm">
                 @csrf
-                <div class="mb-6">
-                    <label for="number_create" class="block mb-2 text-sm font-medium text-red-600">Nomor Meja</label>
-                    <input type="text" name="number" id="number_create"
-                        class="bg-white border-2 border-red-600 text-red-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"
-                        placeholder="MEJA-01" required>
+                @method('PUT')
+                <input type="hidden" id="editId" name="id">
+                <div class="mb-4">
+                    <label class="block text-red-600 mb-2">Nomor Meja</label>
+                    <input type="text" id="editNumber" name="number" 
+                           class="w-full p-2 border-2 border-red-600 rounded" required>
                 </div>
-                <div class="flex justify-end space-x-4">
-                    <button type="submit"
-                        class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md">
-                        💾 Simpan
-                    </button>
-                    <button type="button" onclick="toggleModal('createTableModal')"
-                        class="text-red-600 bg-white hover:bg-red-50 border-2 border-red-600 rounded-lg text-sm font-medium px-5 py-2.5">
-                        ✖ Batal
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Edit Meja -->
-    <div id="editTableModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-        <div class="fixed inset-0 bg-black opacity-50"></div>
-        <div class="relative bg-white rounded-lg shadow-2xl mx-4 md:mx-auto md:w-1/3 border-2 border-red-600">
-            <div class="flex items-start justify-between p-6 border-b-2 border-red-600">
-                <h3 class="text-xl font-semibold text-red-600" id="title_edit">✏️ Update Meja</h3>
-                <button type="button" onclick="toggleModal('editTableModal')"
-                    class="text-red-600 hover:text-red-800 text-2xl">
-                    &times;
-                </button>
-            </div>
-            <form id="editForm" method="POST" class="p-6">
-                @csrf
-                @method('PATCH')
-                <div class="mb-6">
-                    <label for="number_edit" class="block mb-2 text-sm font-medium text-red-600">Nomor Meja</label>
-                    <input type="text" name="number" id="number_edit"
-                        class="bg-white border-2 border-red-600 text-red-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"
-                        required>
-                </div>
-                <div class="mb-6">
-                    <label for="status_edit" class="block mb-2 text-sm font-medium text-red-600">Status</label>
-                    <select name="status" id="status_edit"
-                        class="bg-white border-2 border-red-600 text-red-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
-                        <option value="available" class="text-green-600">AVAILABLE</option>
-                        <option value="occupied" class="text-red-600">OCCUPIED</option>
+                <div class="mb-4">
+                    <label class="block text-red-600 mb-2">Status</label>
+                    <select id="editStatus" name="status" 
+                            class="w-full p-2 border-2 border-red-600 rounded">
+                        <option value="available">Available</option>
+                        <option value="occupied">Occupied</option>
                     </select>
                 </div>
-                <div class="flex justify-end space-x-4">
-                    <button type="submit"
-                        class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md">
-                        💾 Simpan
-                    </button>
-                    <button type="button" onclick="toggleModal('editTableModal')"
-                        class="text-red-600 bg-white hover:bg-red-50 border-2 border-red-600 rounded-lg text-sm font-medium px-5 py-2.5">
-                        ✖ Batal
-                    </button>
+                <div class="flex justify-end gap-4">
+                    <button type="button" onclick="closeEditModal()"
+                            class="bg-gray-500 text-white px-4 py-2 rounded">Batal</button>
+                    <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Simpan</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
-        function toggleModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.toggle('hidden');
-        }
-
-        function editTableModal(button) {
-            const id = button.dataset.id;
-            const number = button.dataset.number;
-            const status = button.dataset.status;
-
-            document.getElementById('editForm').action = `/table/${id}`;
-            document.getElementById('number_edit').value = number;
-            document.getElementById('status_edit').value = status;
-            document.getElementById('title_edit').innerText = `✏️ UPDATE ${number}`;
-            toggleModal('editTableModal');
-        }
-
-        // Validasi Create Form
-document.getElementById('createForm')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const numberInput = document.getElementById('number_create');
-    const number = numberInput.value.trim();
-
-    if (!number) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Nomor meja tidak boleh kosong!',
-            confirmButtonColor: '#dc2626'
-        });
-        return;
-    }
-
-    try {
-        const response = await fetch(`/table/check-number/${encodeURIComponent(number)}`);
-        if (!response.ok) throw new Error('Network error');
-        
-        const data = await response.json();
-        
-        if (data.exists) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Duplikat!',
-                text: `Meja ${number} sudah terdaftar!`,
-                confirmButtonColor: '#dc2626'
-            });
-            return;
-        }
-
-        // Jika validasi OK, submit form
-        this.submit();
-
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Gagal melakukan validasi nomor meja',
-            confirmButtonColor: '#dc2626'
-        });
-    }
-});
-
-        // Validasi Edit Form
-        document.getElementById('editForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const number = document.getElementById('number_edit').value.trim();
-            const id = this.action.split('/').pop();
-
-            const response = await fetch(`/table/check-number/${encodeURIComponent(number)}?id=${id}`);
-            const data = await response.json();
-
-            if (data.exists) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Duplikat!',
-                    text: `Meja ${number} sudah terdaftar!`,
-                    confirmButtonColor: '#dc2626'
+        // Tambah Meja Otomatis
+        async function createTable() {
+            try {
+                const response = await fetch("{{ route('table.store') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({auto_generate: true})
                 });
-                return;
-            }
 
-            Swal.fire({
-                title: `Update Meja ${number}?`,
-                text: 'Pastikan data sudah benar',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Update!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.submit();
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const newRow = `
+                        <tr id="row-${data.table.id}" class="bg-white border-b hover:bg-red-50">
+                            <td class="px-6 py-4 font-semibold">${document.querySelectorAll('#tableBody tr').length + 1}</td>
+                            <td class="px-6 py-4 font-bold text-red-600">${data.table.number}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1.5 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                                    AVAILABLE
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 space-x-2">
+                                <button onclick="openEditModal('${data.table.id}', '${data.table.number}', 'available')"
+                                    class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-md text-sm text-white shadow">
+                                    ✏️ Edit
+                                </button>
+                                <button onclick="deleteTable('${data.table.id}')"
+                                    class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm text-white shadow">
+                                    🗑️ Hapus
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('tableBody').insertAdjacentHTML('beforeend', newRow);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Meja baru ditambahkan',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error(data.message);
                 }
-            });
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: error.message
+                });
+            }
+        }
+
+        // Edit Meja
+        function openEditModal(id, number, status) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editNumber').value = number;
+            document.getElementById('editStatus').value = status;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const response = await fetch(`/table/${document.getElementById('editId').value}`, {
+                    method: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        number: document.getElementById('editNumber').value,
+                        status: document.getElementById('editStatus').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const row = document.getElementById(`row-${data.table.id}`);
+                    row.querySelector('td:nth-child(2)').textContent = data.table.number;
+                    const statusBadge = row.querySelector('span');
+                    statusBadge.textContent = data.table.status.toUpperCase();
+                    statusBadge.className = `px-3 py-1.5 text-sm font-semibold rounded-full 
+                        ${data.table.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+                    
+                    closeEditModal();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Data meja diperbarui',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: error.message
+                });
+            }
         });
 
-        // Konfirmasi Hapus
-        function tableDelete(id, number) {
+        // Hapus Meja
+        async function deleteTable(id) {
             Swal.fire({
-                title: `Hapus Meja ${number}?`,
-                text: "Data yang dihapus tidak dapat dikembalikan!",
+                title: 'Hapus Meja?',
+                text: "Data tidak dapat dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
                 cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
+                confirmButtonText: 'Ya, Hapus!'
+            }).then(async (result) => {
                 if (result.isConfirmed) {
-                    fetch(`/table/${id}`, {
+                    try {
+                        const response = await fetch(`/table/${id}`, {
                             method: 'DELETE',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             }
-                        })
-                        // .then(response => {
-                        //     if (!response.ok) {
-                        //         throw new Error('Gagal menghapus data');
-                        //     }
-                        //     return response.json();
-                        // })
-                        .then(data => {
+                        });
+
+                        if (response.ok) {
+                            document.getElementById(`row-${id}`).remove();
                             Swal.fire({
-                                title: 'Terhapus!',
-                                text: `Meja ${number} berhasil dihapus`,
                                 icon: 'success',
-                                confirmButtonColor: '#dc2626',
+                                title: 'Terhapus!',
+                                text: 'Meja berhasil dihapus',
                                 timer: 1500,
                                 showConfirmButton: false
                             });
-                            location.reload();
-
-                            // Remove table row from DOM without reload
-                            const row = document.querySelector(`tr[data-id="${id}"]`);
-                            if (row) {
-                                row.remove();
-                            }
-                        })
-                        .catch(error => {
-                            Swal.fire({
-                                title: 'Gagal!',
-                                text: error.message || 'Terjadi kesalahan',
-                                icon: 'error',
-                                confirmButtonColor: '#dc2626'
-                            });
+                        } else {
+                            throw new Error('Gagal menghapus meja');
+                        }
+                    } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: error.message
                         });
+                    }
                 }
             });
         }

@@ -12,6 +12,7 @@ class Transaction extends Model
     protected $fillable = [
         'user_id',
         'table_id',
+        'code',
         'bowl_size',
         'spiciness_level',
         'total_price',
@@ -55,4 +56,16 @@ class Transaction extends Model
     {
         return $query->where('status', $status);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($transaction) {
+            $transaction->code = TransactionDetail::generateTransactionCode(
+                $transaction->customer_name
+            );
+        });
+    }
+    
 }

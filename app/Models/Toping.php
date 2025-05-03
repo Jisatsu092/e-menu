@@ -14,6 +14,13 @@ class Toping extends Model
         return $this->belongsTo(Category::class);
     }
     public function transactions() {
-        return $this->belongsToMany(Transaction::class, 'transaction_topings');
+        return $this->belongsToMany (Transaction::class, 'transaction_topings') ->withPivot('quantity');
+        
+    }
+    
+
+    public function transactionDetails()
+    {
+        return $this->hasMany(TransactionDetail::class);
     }
 }

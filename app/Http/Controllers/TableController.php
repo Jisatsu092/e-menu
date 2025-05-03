@@ -4,12 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Table;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Exception;
 
 class TableController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         try {
@@ -17,8 +16,8 @@ class TableController extends Controller
             $entries = request('entries', 5);
 
             $tables = Table::when($search, function ($query) use ($search) {
-                $query->where('number', 'like', "%$search%");
-            })
+                    $query->where('number', 'like', "%$search%");
+                })
                 ->paginate($entries)
                 ->withQueryString();
 
@@ -27,90 +26,96 @@ class TableController extends Controller
                 'search' => $search,
                 'entries' => $entries
             ]);
-        } catch (\Exception $e) {
-            return redirect()->route('error.index')->with('error_message', 'Error: ' . $e->getMessage());
+
+        } catch (Exception $e) {
+            return redirect()
+                ->route('error.index')
+                ->with('error_message', 'Terjadi kesalahan saat memuat data meja: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         try {
-            $data = [
-                'number' => $request->input('number'),
-                'status' => 'available',
-            ];
+            DB::beginTransaction();
 
-            // Validasi input
-            $request->validate([
-                'number' => 'required|unique:tables|max:255',
+            // Auto generate number
+            $lastTable = Table::orderBy('number', 'desc')->first();
+            $nextNumber = $lastTable ? (int) str_replace('MEJA-', '', $lastTable->number) + 1 : 1;
+
+            $table = Table::create([
+                'number' => 'MEJA-' . str_pad($nextNumber, 2, '0', STR_PAD_LEFT),
+                'status' => 'available'
             ]);
 
-            Table::create($data);
+            DB::commit();
 
-            return redirect()
-                ->route('table.index')
-                ->with('message_insert', 'Data meja berhasil ditambahkan.');
-        } catch (\Exception $e) {
-            return redirect()
-                ->route('error.index')
-                ->with('error_message', 'Terjadi kesalahan saat menambahkan data meja: ' . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'table' => $table
+            ]);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
         try {
-            $data = [
-                'number' => $request->input('number'),
-                'status' => $request->input('status', 'available'), // Default status jika tidak diisi
-            ];
-
-            // Validasi input
             $request->validate([
                 'number' => 'required|max:255|unique:tables,number,' . $id,
+                'status' => 'required|in:available,occupied'
             ]);
 
             $table = Table::findOrFail($id);
-            $table->update($data);
+            $table->update($request->all());
 
-            return redirect()
-                ->route('table.index')
-                ->with('message_update', 'Data meja berhasil diperbarui.');
-        } catch (\Exception $e) {
-            return redirect()
-                ->route('error.index')
-                ->with('error_message', 'Terjadi kesalahan saat memperbarui data meja: ' . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'table' => $table
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy($id)
     {
         try {
             $table = Table::findOrFail($id);
             $table->delete();
 
-            return back()->with('message_delete', 'Data meja berhasil dihapus.');
-        } catch (\Exception $e) {
-            return back()->with('error_message', 'Terjadi kesalahan saat menghapus data meja: ' . $e->getMessage());
+            return response()->json([
+                'success' => true
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
     }
 
-    /**
-     * Check if a table number exists.
-     */
-    // TableController.php
     public function checkNumber($number)
     {
-        $exists = Table::where('number', $number)->exists();
-        return response()->json(['exists' => $exists]);
+        try {
+            $exists = Table::where('number', $number)->exists();
+            return response()->json(['exists' => $exists]);
+            
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
