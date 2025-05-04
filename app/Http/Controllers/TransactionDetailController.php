@@ -78,4 +78,10 @@ class TransactionDetailController extends Controller
     {
         //
     }
+
+    public function destroyAll()
+{
+    TransactionDetail::query()->delete();
+    return redirect()->back()->with('success', 'All transaction details cleared successfully.');
+}
 }

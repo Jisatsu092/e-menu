@@ -2,62 +2,70 @@
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        <!-- Name Input -->
+        <div class="mb-6">
+            <label for="name" class="block text-gray-700 text-sm font-semibold mb-2">Nama</label>
+            <input id="name" type="text" name="name" required autofocus
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition duration-300"
+                placeholder="Nama Lengkap">
+            <x-input-error :messages="$errors->get('name')" class="mt-2 text-red-600 text-sm" />
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <!-- Email Input -->
+        <div class="mb-6">
+            <label for="email" class="block text-gray-700 text-sm font-semibold mb-2">Alamat Email</label>
+            <input type="email" name="user_email" autocomplete="email" readonly
+                onfocus="this.removeAttribute('readonly')"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring focus:ring-red-200 transition duration-300"
+                placeholder="email@contoh.com" />
+            <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-600 text-sm" />
         </div>
 
-                {{-- Role --}}
-                <div class="mb-5">
-                    <label for="role"
-                        class="block mb-2 text-sm font-medium text-gray-900 white:text-black">Role</label>
-                    <select name="role" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                        <option value="A">Admin</option>
-                        <option value="K">Kasir</option>
-                        <option value="U">User</option>
-                    </select>
-                </div>
+        {{-- <!-- Role Dropdown -->
+        <div class="mb-6">
+            <label for="role" class="block text-gray-700 text-sm font-semibold mb-2">Peran</label>
+            <select name="role" id="role"
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:border-red-500 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition duration-300">
+                <option value="A">Admin</option>
+                <option value="K">Kasir</option>
+                <option value="U">User</option>
+            </select>
+            <x-input-error :messages="$errors->get('role')" class="mt-2 text-red-600 text-sm"/>
+        </div> --}}
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <!-- Password Input -->
+        <div class="mb-6">
+            <label for="password" class="block text-gray-700 text-sm font-semibold mb-2">Password</label>
+            <input type="password" name="login_password" autocomplete="new-password" readonly
+                onfocus="this.removeAttribute('readonly')"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring focus:ring-red-200 transition duration-300"
+                placeholder="••••••••" />
+            <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-600 text-sm" />
         </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        <!-- Confirm Password Input -->
+        <div class="mb-6">
+            <label for="password_confirmation" class="block text-gray-700 text-sm font-semibold mb-2">Konfirmasi
+                Password</label>
+            <input id="password_confirmation" type="password" name="password_confirmation" required
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition duration-300"
+                placeholder="••••••••">
+            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2 text-red-600 text-sm" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
+        <!-- Register Button -->
+        <button type="submit"
+            class="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition duration-300 font-semibold shadow-md transform hover:scale-[1.02]">
+            Daftar Sekarang
+        </button>
 
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
+        <!-- Login Link -->
+        <div class="text-center mt-6">
+            <p class="text-gray-600">Sudah punya akun?
+                <a href="{{ route('login') }}" class="text-red-600 hover:text-red-800 font-semibold">
+                    Masuk disini
+                </a>
+            </p>
         </div>
     </form>
 </x-guest-layout>

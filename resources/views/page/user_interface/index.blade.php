@@ -8,6 +8,7 @@
         <title>Warung Seblak Ajnira - Pemesanan</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
         <style>
             .scroll-hide::-webkit-scrollbar {
                 display: none;
@@ -25,21 +26,37 @@
             }
 
             .mobile-cart-panel {
-                transform: translateY(20%);
-                right: 1rem;
-                bottom: calc(100% + 10px);
-                max-height: 60vh;
+                max-width: 280px;
+                top: 100%;
+                left: auto;
+                right: 0;
+                transform-origin: top right;
+                margin-top: 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 50;
             }
 
-            @media (min-width: 768px) {
-                .mobile-card {
-                    min-width: auto;
+            #cartDropdown {
+                transition: all 0.3s ease;
+            }
+
+            @media (max-width: 768px) {
+                #cartDropdown {
+                    transform: translateY(0);
+                    bottom: 1rem;
+                    left: 2.5vw;
+                    right: 2.5vw;
+                    width: 95vw;
+                    z-index: 1001;
+                    border-radius: 1rem;
                 }
 
-                .toping-grid {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 1rem;
+                .horizontal-scroll::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .mobile-card {
+                    min-width: 80vw;
                 }
             }
 
@@ -89,6 +106,30 @@
             .category-btn.active {
                 background-color: #ef4444;
                 color: white;
+            }
+
+            .cart-badge {
+                @extend .absolute;
+                -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs;
+            }
+
+            .cart-item-details {
+                @extend .flex;
+                justify-between items-center mb-3;
+            }
+
+            .cart-item-card {
+                @apply flex-shrink-0 min-w-[120px] max-w-xs;
+            }
+
+            .cart-item-qty {
+                @extend .text-xs;
+                text-gray-500;
+            }
+
+            .cart-item-price {
+                @extend .font-bold;
+                text-red-500;
             }
         </style>
     </head>
@@ -160,8 +201,7 @@
                 </form>
             </div>
         </div>
-
-        <!-- Modal Konfirmasi Pembayaran (Diperbaiki) -->
+        <!-- Modal Konfirmasi Pembayaran -->
         <div id="paymentConfirmationModal"
             class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md animate-bounce-in mx-4">
@@ -170,7 +210,6 @@
                     <button onclick="closePaymentModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
                 <div class="space-y-4 max-h-[70vh] modal-scrollable overflow-y-auto">
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Metode Pembayaran</label>
                         <select id="paymentMethod" onchange="showPaymentDetails()"
@@ -211,7 +250,6 @@
                             <h4 class="font-medium mb-2">Detail Pesanan:</h4>
                             <div id="paymentOrderItems" class="space-y-2 max-h-40 modal-scrollable overflow-y-auto">
                             </div>
-                            <!-- Item pesanan muncul di sini -->
                             <div class="mt-3 pt-2 border-t">
                                 <p class="flex justify-between font-bold">
                                     <span>Total:</span>
@@ -232,7 +270,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Modal Pesanan Berhasil -->
         <div id="orderConfirmationModal"
             class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
@@ -254,37 +291,33 @@
                 </div>
             </div>
         </div>
-
         <!-- Floating Mobile Cart -->
-        <div class="md:hidden fixed bottom-20 right-4 z-[1001]">
+        <div class="fixed top-16 right-4 z-[1001]">
             <button id="mobileCartButton" onclick="toggleMobileCart()"
-                class="bg-red-500 text-white p-3 rounded-full shadow-lg relative 
-                                   hover:bg-red-600 transition-transform transform hover:scale-110">
+                class="bg-red-500 text-white p-3 rounded-full shadow-lg relative hover:bg-red-600 transition-transform transform hover:scale-110">
                 🛒
                 <span id="mobileCartBadge"
-                    class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full 
-                                     w-6 h-6 flex items-center justify-center text-xs">0</span>
+                    class="absolute right-0 top-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">0</span>
             </button>
-
             <div id="mobileCartPanel"
-                class="hidden absolute mobile-cart-panel w-72 bg-white rounded-lg 
-                                shadow-xl transition-all duration-300 origin-bottom-right animate-bounce-in">
+                class="hidden absolute mobile-cart-panel w-auto left-auto right-0 bg-white rounded-lg shadow-xl transition-all duration-300 origin-top-right animate-bounce-in z-50">
                 <div class="p-4 overflow-y-auto max-h-[60vh]">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h3 class="text-lg font-bold">Keranjang</h3>
-                        <button onclick="toggleMobileCart()" class="text-gray-500 hover:text-gray-700">
-                            ✕
-                        </button>
+                        <button onclick="toggleMobileCart()" class="text-gray-500 hover:text-gray-700">×</button>
                     </div>
                     <div id="mobileCartItems" class="space-y-3"></div>
                     <div class="mt-4 pt-4 border-t">
                         <div class="flex justify-between mb-3">
-                            <span class="font-medium">Total:</span>
+                            <span class="font-medium">Total Item:</span>
+                            <span id="mobileCartItemTotal" class="font-bold text-red-500">0 item</span>
+                        </div>
+                        <div class="flex justify-between mb-3">
+                            <span class="font-medium">Total Harga:</span>
                             <span id="mobileCartTotal" class="font-bold text-red-500">Rp0</span>
                         </div>
                         <button onclick="openCheckoutModal()"
-                            class="w-full bg-red-500 text-white py-2 rounded-md 
-                                               hover:bg-red-600">
+                            class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600">
                             Checkout
                         </button>
                     </div>
@@ -300,18 +333,16 @@
                     <h1 class="text-2xl md:text-3xl font-bold text-red-500 mb-1">🍲 Warung Seblak Ajnira</h1>
                     <p class="text-sm md:text-base text-gray-600">Pilih topping seblak favoritmu</p>
                 </div>
-
                 <!-- Desktop Cart -->
                 <div class="hidden md:block relative">
                     <button onclick="toggleCart()"
                         class="bg-red-500 text-white p-2 md:p-3 rounded-full shadow-lg relative 
-                                   hover:bg-red-600">
+                           hover:bg-red-600">
                         🛒
                         <span id="cartBadge"
                             class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full 
-                                     w-6 h-6 flex items-center justify-center text-xs">0</span>
+                         w-6 h-6 flex items-center justify-center text-xs">0</span>
                     </button>
-
                     <div id="cartDropdown"
                         class="hidden mt-2 w-72 bg-white rounded-lg shadow-xl absolute right-0 z-[1001]">
                         <div class="p-4">
@@ -322,7 +353,11 @@
                             <div id="cartItems" class="space-y-3 max-h-60 overflow-y-auto"></div>
                             <div class="mt-4 pt-4 border-t">
                                 <div class="flex justify-between mb-3">
-                                    <span class="font-medium">Total:</span>
+                                    <span class="font-medium">Total Item:</span>
+                                    <span id="cartItemTotal" class="font-bold text-red-500">0 item</span>
+                                </div>
+                                <div class="flex justify-between mb-3">
+                                    <span class="font-medium">Total Harga:</span>
                                     <span id="cartTotal" class="font-bold text-red-500">Rp0</span>
                                 </div>
                                 <button onclick="openCheckoutModal()"
@@ -334,23 +369,23 @@
                     </div>
                 </div>
             </div>
-
             <!-- Mobile Categories Scroll -->
             <div class="md:hidden mb-4">
-                <div class="flex space-x-3 overflow-x-auto scroll-hide pb-3 horizontal-scroll">
-                    <button onclick="filterByCategory('all')"
-                        class="category-btn active px-4 py-2 bg-red-500 text-white rounded-full whitespace-nowrap">
-                        Semua Topping
-                    </button>
-                    @foreach ($categories as $category)
-                        <button onclick="filterByCategory('{{ $category->id }}')"
-                            class="category-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-full whitespace-nowrap">
-                            {{ $category->name }}
+                <div class="flex-1 overflow-x-auto scroll-hide horizontal-scroll">
+                    <div class="flex space-x-3 pb-3">
+                        <button onclick="filterByCategory('all')"
+                            class="category-btn active px-4 py-2 bg-red-500 text-white rounded-full whitespace-nowrap">
+                            Semua Topping
                         </button>
-                    @endforeach
+                        @foreach ($categories as $category)
+                            <button onclick="filterByCategory('{{ $category->id }}')"
+                                class="category-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-full whitespace-nowrap">
+                                {{ $category->name }}
+                            </button>
+                        @endforeach
+                    </div>
                 </div>
             </div>
-
             <!-- Desktop Categories -->
             <div class="hidden md:flex mb-6 space-x-3">
                 <button onclick="filterByCategory('all')"
@@ -364,14 +399,12 @@
                     </button>
                 @endforeach
             </div>
-
             <!-- Mobile Cart Scroll -->
             <div class="md:hidden mb-6">
                 <div id="mobileCart" class="flex overflow-x-auto scroll-hide gap-3 pb-3 horizontal-scroll">
                     <!-- Item cart akan ditambahkan via JavaScript -->
                 </div>
             </div>
-
             <!-- Topping Grid -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 @foreach ($topings as $toping)
@@ -408,22 +441,62 @@
                 @endforeach
             </div>
         </div>
+
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 checkPendingOrder();
+
+                // Event listener untuk close dropdown dengan penanganan null
+                document.addEventListener('click', function(event) {
+                    // Untuk desktop
+                    const cartDropdown = document.getElementById('cartDropdown');
+                    const cartButton = document.querySelector('.hidden.md\\:block .relative button');
+
+                    if (cartDropdown && cartButton) {
+                        if (!cartDropdown.contains(event.target) && !cartButton.contains(event.target)) {
+                            cartDropdown.classList.add('hidden');
+                        }
+                    }
+
+                    // Untuk mobile
+                    const mobilePanel = document.getElementById('mobileCartPanel');
+                    const mobileButton = document.getElementById('mobileCartButton');
+
+                    if (mobilePanel && mobileButton) {
+                        if (!mobilePanel.contains(event.target) && !mobileButton.contains(event.target)) {
+                            mobilePanel.classList.add('hidden');
+                            mobilePanel.classList.remove('animate-bounce-in');
+                        }
+                    }
+                });
+
+                // Fungsi toggle cart untuk desktop
+                window.toggleCart = function() {
+                    const dropdown = document.getElementById('cartDropdown');
+                    const isMobile = window.innerWidth < 768;
+
+                    if (dropdown) {
+                        dropdown.classList.toggle('hidden');
+
+                        // Pada mobile, geser ke bawah agar tidak tertutup tombol
+                        if (isMobile && !dropdown.classList.contains('hidden')) {
+                            setTimeout(() => {
+                                window.scrollTo({
+                                    top: document.body.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            }, 100);
+                        }
+                    }
+                };
+
             });
+
 
             function closeOrderModal() {
                 document.getElementById('orderConfirmationModal').classList.add('hidden');
                 sessionStorage.removeItem('pendingOrderStatus');
             }
-
-            // function printOrder() {
-            //     const transactionId = document.getElementById('printButton').dataset.transactionId;
-            //     window.open(`/print/${transactionId}`, '_blank');
-            //     sessionStorage.removeItem('pendingOrderStatus');
-            // }
-
 
             let cart = [];
             let cartVisible = false;
@@ -431,15 +504,18 @@
 
             // Fungsi Keranjang
             function updateCartDisplay() {
-                const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+                const totalQty = cart.reduce((acc, item) => acc + item.quantity, 0);
+                const totalPrice = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-                // Desktop
-                document.getElementById('cartBadge').textContent = cart.length;
-                document.getElementById('cartTotal').textContent = `Rp${total.toLocaleString('id-ID')}`;
+                // Update Desktop
+                document.getElementById('cartBadge').textContent = totalQty;
+                document.getElementById('cartTotal').textContent = `Rp${totalPrice.toLocaleString('id-ID')}`;
+                document.getElementById('cartItemTotal').textContent = `${totalQty} item`;
 
-                // Mobile
-                document.getElementById('mobileCartBadge').textContent = cart.length;
-                document.getElementById('mobileCartTotal').textContent = `Rp${total.toLocaleString('id-ID')}`;
+                // Update Mobile
+                document.getElementById('mobileCartBadge').textContent = totalQty;
+                document.getElementById('mobileCartTotal').textContent = `Rp${totalPrice.toLocaleString('id-ID')}`;
+                document.getElementById('mobileCartItemTotal').textContent = `${totalQty} item`;
 
                 // Update Items
                 const mobileItems = document.getElementById('mobileCartItems');
@@ -450,7 +526,7 @@
                         <div>
                             <p class="font-medium text-sm">${item.name}</p>
                             <p class="text-xs text-gray-500">
-                                ${item.quantity}x Rp${item.price.toLocaleString('id-ID')}
+                                Qty: ${item.quantity} x Rp${item.price.toLocaleString('id-ID')}
                             </p>
                         </div>
                         <button onclick="removeItem('${item.id}')" 
@@ -465,35 +541,41 @@
             }
 
             document.addEventListener('click', function(event) {
-                // Untuk desktop
                 const cartDropdown = document.getElementById('cartDropdown');
                 const cartButton = document.querySelector('.hidden.md\\:block .relative button');
-
-                if (cartDropdown && !cartDropdown.contains(event.target) &&
-                    !cartButton.contains(event.target)) {
-                    cartDropdown.classList.add('hidden');
-                }
-
-                // Untuk mobile
                 const mobilePanel = document.getElementById('mobileCartPanel');
                 const mobileButton = document.getElementById('mobileCartButton');
 
-                if (mobilePanel && !mobilePanel.contains(event.target) &&
-                    !mobileButton.contains(event.target)) {
+                // Desktop cart
+                if (cartDropdown && cartButton && !cartDropdown.contains(event.target) && !cartButton.contains(event
+                        .target)) {
+                    cartDropdown.classList.add('hidden');
+                }
+
+                // Mobile cart
+                if (mobilePanel && mobileButton && !mobilePanel.contains(event.target) && !mobileButton.contains(event
+                        .target)) {
                     mobilePanel.classList.add('hidden');
                 }
             });
 
-            // Fungsi Filter Kategori
-            function filterByCategory(categoryId) {
+            window.filterByCategory = function(categoryId) {
                 // Update active class
                 document.querySelectorAll('.category-btn').forEach(btn => {
                     btn.classList.remove('active', 'bg-red-500', 'text-white');
                     btn.classList.add('bg-gray-100', 'text-gray-600');
                 });
 
-                event.target.classList.add('active', 'bg-red-500', 'text-white');
-                event.target.classList.remove('bg-gray-100', 'text-gray-600');
+                // Cari tombol yang sesuai dengan kategori
+                const activeBtn = [...document.querySelectorAll('.category-btn')]
+                    .find(btn => btn.textContent.trim() ===
+                        (categoryId === 'all' ? 'Semua Topping' :
+                            document.querySelector(`[onclick="filterByCategory('${categoryId}')"]`)?.textContent?.trim()));
+
+                if (activeBtn) {
+                    activeBtn.classList.remove('bg-gray-100', 'text-gray-600');
+                    activeBtn.classList.add('active', 'bg-red-500', 'text-white');
+                }
 
                 // Filter items
                 const allItems = document.querySelectorAll('[data-category-id]');
@@ -504,22 +586,36 @@
                         item.classList.add('hidden');
                     }
                 });
-            }
+            };
 
-            function updateQuantity(id, change, price) {
+
+            window.updateQuantity = function(id, change, price) {
+                // Implementasi fungsi updateQuantity
                 const itemIndex = cart.findIndex(item => item.id === id);
                 const stockElement = document.getElementById(`stock-${id}`);
+                if (!stockElement) return;
+
                 let currentStock = parseInt(stockElement.textContent);
 
                 if (itemIndex > -1) {
                     const newQty = cart[itemIndex].quantity + change;
                     if (newQty < 0) return;
-                    if (newQty > currentStock) {
-                        Swal.fire('Stok tidak cukup!', '', 'warning');
-                        return;
+
+                    if (newQty === 0) {
+                        // Hapus item jika quantity mencapai 0
+                        stockElement.textContent = currentStock + cart[itemIndex].quantity;
+                        cart.splice(itemIndex, 1);
+                    } else {
+                        if (newQty > currentStock) {
+                            Swal.fire('Stok tidak cukup!', '', 'warning');
+                            return;
+                        }
+                        cart[itemIndex].quantity = newQty;
+                        stockElement.textContent = currentStock - change;
+                        // Update quantity display
+                        const qtyDisplay = document.getElementById(`qty-${id}`);
+                        if (qtyDisplay) qtyDisplay.textContent = newQty;
                     }
-                    cart[itemIndex].quantity = newQty;
-                    stockElement.textContent = currentStock - change;
                 } else if (change === 1) {
                     if (currentStock < 1) {
                         Swal.fire('Stok habis!', '', 'warning');
@@ -533,17 +629,22 @@
                         quantity: 1
                     });
                     stockElement.textContent = currentStock - 1;
+                    // Update quantity display
+                    const qtyDisplay = document.getElementById(`qty-${id}`);
+                    if (qtyDisplay) qtyDisplay.textContent = 1;
                 }
                 updateCartDisplay();
-            }
+            };
 
             function removeItem(id) {
                 const itemIndex = cart.findIndex(item => item.id === id);
                 const removedItem = cart[itemIndex];
                 const stockElement = document.getElementById(`stock-${id}`);
+
                 if (stockElement) {
                     stockElement.textContent = parseInt(stockElement.textContent) + removedItem.quantity;
                 }
+
                 cart = cart.filter(item => item.id !== id);
                 document.getElementById(`qty-${id}`).textContent = 0;
                 updateCartDisplay();
@@ -571,8 +672,10 @@
 
             function toggleMobileCart() {
                 const panel = document.getElementById('mobileCartPanel');
-                panel.classList.toggle('hidden');
-                panel.classList.toggle('animate-bounce-in');
+                if (panel) {
+                    panel.classList.toggle('hidden');
+                    panel.classList.toggle('animate-bounce-in');
+                }
             }
 
             // Fungsi Modal
@@ -581,12 +684,14 @@
                     Swal.fire('Keranjang kosong!', 'Silakan tambahkan item terlebih dahulu', 'warning');
                     return;
                 }
+
                 document.getElementById('orderItems').innerHTML = cart.map(item => `
                     <div class="flex justify-between">
-                        <span>${item.name} (${item.quantity}x)</span>
+                        <span>${item.name} (Qty: ${item.quantity})</span>
                         <span>Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
                     </div>
                 `).join('');
+
                 const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
                 document.getElementById('modalTotal').textContent = `Rp${total.toLocaleString('id-ID')}`;
                 document.getElementById('checkoutModal').classList.remove('hidden');
@@ -655,7 +760,7 @@
                 e.preventDefault();
                 const tableNumber = document.getElementById('tableNumber').value;
                 const spicinessLevel = document.getElementById('spicinessLevel').value;
-                const bowlSize = document.getElementById('bowlSize').value; // Tambahkan ini
+                const bowlSize = document.getElementById('bowlSize').value;
 
                 if (!tableNumber || !spicinessLevel || !bowlSize) {
                     Swal.fire('Error!', 'Harap lengkapi semua field!', 'error');
@@ -665,17 +770,18 @@
                 const orderData = {
                     table_id: tableNumber,
                     spiciness_level: spicinessLevel,
-                    bowl_size: bowlSize, // Tambahkan ini
+                    bowl_size: bowlSize,
                     items: cart,
                     total_price: cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
                 };
+
                 sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
 
                 // Tampilkan item di modal pembayaran
                 const paymentOrderItems = document.getElementById('paymentOrderItems');
                 paymentOrderItems.innerHTML = cart.map(item => `
                     <div class="flex justify-between">
-                        <span>${item.name} (${item.quantity}x)</span>
+                        <span>${item.name} (Qty: ${item.quantity})</span>
                         <span>Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
                     </div>
                 `).join('');
@@ -691,11 +797,9 @@
 
             window.addEventListener('beforeunload', function(e) {
                 const modal = document.getElementById('orderConfirmationModal');
-
                 if (modal && !modal.classList.contains('hidden')) {
                     const transactionId = document.getElementById('printButton')?.dataset.transactionId;
                     const status = document.querySelector('.status-text')?.textContent;
-
                     if (transactionId && status) {
                         sessionStorage.setItem('pendingOrderStatus', JSON.stringify({
                             showModal: true,
@@ -716,6 +820,7 @@
                     Swal.fire('Error!', 'Harap pilih metode pembayaran', 'error');
                     return;
                 }
+
                 if (!paymentProof) {
                     Swal.fire('Error!', 'Harap upload bukti pembayaran', 'error');
                     return;
@@ -756,7 +861,6 @@
 
                         sessionStorage.setItem('pendingOrderStatus', JSON.stringify(transactionData));
                         showOrderModal(result.status, result.transactionId);
-
                         closePaymentModal();
                         clearCart();
                     } else {
@@ -783,7 +887,6 @@
                     printBtn.style.display = status === 'proses' ? 'block' : 'none';
                     printBtn.dataset.transactionId = transactionId;
                     modal.classList.remove('hidden');
-
                 } catch (error) {
                     console.error('Error showing modal:', error);
                     sessionStorage.removeItem('pendingOrderStatus');
@@ -795,7 +898,6 @@
                     const transactionId = document.getElementById('printButton').dataset.transactionId;
                     if (!transactionId) throw new Error('ID Transaksi tidak valid');
 
-                    // Gabungkan pendekatan dari report yang berhasil
                     fetch(`/transaksi/print/${transactionId}`)
                         .then(response => {
                             if (!response.ok) throw new Error('Gagal memuat data cetakan');
@@ -804,7 +906,6 @@
                         .then(html => {
                             const printWindow = window.open('', '_blank');
 
-                            // Handle pop-up blocker
                             if (!printWindow || printWindow.closed) {
                                 throw new Error('Pop-up diblokir. Izinkan pop-up untuk mencetak');
                             }
@@ -812,7 +913,6 @@
                             printWindow.document.write(html);
                             printWindow.document.close();
 
-                            // Trigger print setelah konten siap
                             setTimeout(() => {
                                 printWindow.print();
                                 printWindow.onafterprint = () => {
@@ -826,10 +926,9 @@
                                 icon: 'error',
                                 title: 'Gagal Mencetak',
                                 html: `Silakan coba lagi atau <a href="/transaksi/print/${transactionId}" 
-                           target="_blank" class="text-blue-500">buka halaman cetak</a>`,
+                                   target="_blank" class="text-blue-500">buka halaman cetak</a>`,
                             });
                         });
-
                 } catch (error) {
                     console.error('Print error:', error);
                     Swal.fire('Error!', error.message, 'error');
@@ -845,10 +944,8 @@
 
                 statusElement.textContent = status;
                 statusElement.className = `font-bold ${status === 'proses' ? 'text-green-500' : 'text-yellow-500'}`;
-
                 printButton.style.display = status === 'proses' ? 'block' : 'none';
                 printButton.dataset.transactionId = transactionId;
-
                 modal.classList.remove('hidden');
             }
 

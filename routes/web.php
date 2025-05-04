@@ -49,6 +49,8 @@ Route::put(
     ->name('payment_providers.toggle-status')
     ->middleware('auth');
 
+    Route::delete('/transaction-details/clear-all', [TransactionDetailController::class, 'destroyAll'])
+     ->name('transaction_details.destroyAll');
 // web.php
 Route::get('/transaksi/print/{transaction}', 
     [TransactionController::class, 'print'])
