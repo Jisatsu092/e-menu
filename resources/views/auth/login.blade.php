@@ -5,19 +5,18 @@
         <!-- Email Input -->
         <div class="mb-6">
             <label for="email" class="block text-gray-700 text-sm font-semibold mb-2">Alamat Email</label>
-            <input type="email" name="user_email" autocomplete="email" readonly onfocus="this.removeAttribute('readonly')"
-                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring focus:ring-red-200 transition duration-300"
-                placeholder="email@contoh.com" />
+            <input type="email" name="email" :value="old('email')" required autofocus
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition duration-300"
+                placeholder="email@contoh.com">
             <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-600 text-sm" />
         </div>
 
         <!-- Password Input -->
         <div class="mb-6">
             <label for="password" class="block text-gray-700 text-sm font-semibold mb-2">Password</label>
-            <input type="password" name="login_password" autocomplete="new-password" readonly
-                onfocus="this.removeAttribute('readonly')"
-                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring focus:ring-red-200 transition duration-300"
-                placeholder="••••••••" />
+            <input type="password" name="password" required
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition duration-300"
+                placeholder="••••••••">
             <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-600 text-sm" />
         </div>
 

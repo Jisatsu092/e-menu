@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-white bg-red-600 p-4 rounded-lg">
-            🍜 Ramen House Dashboard
+            🍜 
         </h2>
     </x-slot>
 
@@ -81,7 +81,6 @@
         </div>
     </div>
 
-    @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Chart Warna Dasar
@@ -196,5 +195,4 @@
             }
         });
     </script>
-    @endpush
 </x-app-layout>
