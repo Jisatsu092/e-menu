@@ -155,7 +155,7 @@
                             <select id="tableNumber" required class="mt-1 block w-full rounded-md border p-2">
                                 <option value="">Pilih Meja</option>
                                 @foreach ($tables as $table)
-                                    <option value="{{ $table->id }}">Meja {{ $table->number }}</option>
+                                    <option value="{{ $table->id }}">{{ $table->number }}</option>
                                 @endforeach
                             </select>
                         </div>

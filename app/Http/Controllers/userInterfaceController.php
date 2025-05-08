@@ -43,7 +43,14 @@ class userInterfaceController extends Controller
      */
     public function store(Request $request)
     {
-        //
+    $request->validate([
+        'table_id' => 'required|exists:tables,id',
+    ]);
+
+    // Update status meja jadi occupied
+    $table = Table::find($request->table_id);
+    $table->status = 'occupied';
+    $table->save();
     }
 
     /**

@@ -62,6 +62,15 @@ class TableController extends Controller
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
+
+        $table = Table::findOrFail($request->table_id);
+    
+        if ($table->is_occupied) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Meja sudah dipakai'
+            ], 400);
+        }
     }
 
     public function update(Request $request, $id)
