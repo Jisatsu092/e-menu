@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -48,4 +49,12 @@ class RegisteredUserController extends Controller
 
         return redirect(route('beranda', absolute: false));
     }
+
+    protected function validator(array $data)
+{
+    return Validator::make($data, [
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+        // ...
+    ]);
+}
 }

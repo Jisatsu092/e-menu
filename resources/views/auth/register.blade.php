@@ -14,14 +14,13 @@
         <!-- Email Input -->
         <div class="mb-6">
             <label for="email" class="block text-gray-700 text-sm font-semibold mb-2">Alamat Email</label>
-            <input type="email" name="email" :value="old('email')" required autofocus
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition duration-300"
-            placeholder="email@contoh.com">
+            <input type="email" name="email" :value="old('email')" required autofocus oninput="this.value = this.value.toLowerCase()" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition duration-300"
+                   placeholder="email@contoh.com">
             <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-600 text-sm" />
         </div>
 
         <!-- Role Dropdown -->
-        <div class="mb-6">
+        {{-- <div class="mb-6">
             <label for="role" class="block text-gray-700 text-sm font-semibold mb-2">Peran</label>
             <select name="role" id="role"
                     class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:border-red-500 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition duration-300">
@@ -30,7 +29,7 @@
                 <option value="U">User</option>
             </select>
             <x-input-error :messages="$errors->get('role')" class="mt-2 text-red-600 text-sm"/>
-        </div>
+        </div> --}}
 
         <!-- Password Input -->
         <div class="mb-6">

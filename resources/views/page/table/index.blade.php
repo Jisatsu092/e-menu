@@ -11,7 +11,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-2 border-red-600">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-6">
-                        <x-show-entries :route="route('table.index')" :search="request()->search" class="w-full md:w-auto"/>
+                        <x-show-entries :route="route('table.index')" :search="request()->search" class="w-full md:w-auto" />
                         <h3 class="text-lg font-medium text-red-600">DATA MEJA RESTORAN</h3>
                         <button type="button" onclick="createTable()"
                             class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 shadow-md">
@@ -35,16 +35,27 @@
                                         <td class="px-6 py-4 font-semibold">{{ $loop->iteration }}</td>
                                         <td class="px-6 py-4 font-bold text-red-600">{{ $table->number }}</td>
                                         <td class="px-6 py-4">
-                                            <span class="px-3 py-1.5 text-sm font-semibold rounded-full 
+                                            <span
+                                                class="px-3 py-1.5 text-sm font-semibold rounded-full 
                                                 {{ $table->status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                                 {{ strtoupper($table->status) }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 space-x-2">
-                                            <button onclick="openEditModal('{{ $table->id }}', '{{ $table->number }}', '{{ $table->status }}')"
+                                            <!-- Tombol Edit -->
+                                            <button
+                                                onclick="openEditModal('{{ $table->id }}', '{{ $table->number }}', '{{ $table->status }}')"
                                                 class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-md text-sm text-white shadow">
                                                 ✏️ Edit
                                             </button>
+
+                                            <!-- Tombol Set Available (Baru) -->
+                                            <button onclick="setAvailable('{{ $table->id }}')"
+                                                class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-md text-sm text-white shadow">
+                                                ✅ Available
+                                            </button>
+
+                                            <!-- Tombol Hapus -->
                                             <button onclick="deleteTable('{{ $table->id }}')"
                                                 class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm text-white shadow">
                                                 🗑️ Hapus
@@ -74,20 +85,19 @@
                 <input type="hidden" id="editId" name="id">
                 <div class="mb-4">
                     <label class="block text-red-600 mb-2">Nomor Meja</label>
-                    <input type="text" id="editNumber" name="number" 
-                           class="w-full p-2 border-2 border-red-600 rounded" required>
+                    <input type="text" id="editNumber" name="number"
+                        class="w-full p-2 border-2 border-red-600 rounded" required>
                 </div>
                 <div class="mb-4">
                     <label class="block text-red-600 mb-2">Status</label>
-                    <select id="editStatus" name="status" 
-                            class="w-full p-2 border-2 border-red-600 rounded">
+                    <select id="editStatus" name="status" class="w-full p-2 border-2 border-red-600 rounded">
                         <option value="available">Available</option>
                         <option value="occupied">Occupied</option>
                     </select>
                 </div>
                 <div class="flex justify-end gap-4">
                     <button type="button" onclick="closeEditModal()"
-                            class="bg-gray-500 text-white px-4 py-2 rounded">Batal</button>
+                        class="bg-gray-500 text-white px-4 py-2 rounded">Batal</button>
                     <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Simpan</button>
                 </div>
             </form>
@@ -105,11 +115,13 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({auto_generate: true})
+                    body: JSON.stringify({
+                        auto_generate: true
+                    })
                 });
 
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     const newRow = `
                         <tr id="row-${data.table.id}" class="bg-white border-b hover:bg-red-50">
@@ -133,11 +145,53 @@
                         </tr>
                     `;
                     document.getElementById('tableBody').insertAdjacentHTML('beforeend', newRow);
-                    
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil!',
                         text: 'Meja baru ditambahkan',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: error.message
+                });
+            }
+        }
+
+        // Set Status Available
+        async function setAvailable(id) {
+            try {
+                const response = await fetch(`/table/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'available' // Hanya kirim status
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const row = document.getElementById(`row-${id}`);
+                    const statusBadge = row.querySelector('span');
+                    statusBadge.textContent = 'AVAILABLE';
+                    statusBadge.className =
+                    'px-3 py-1.5 text-sm font-semibold rounded-full bg-green-100 text-green-800';
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Status meja diubah menjadi AVAILABLE',
                         timer: 1500,
                         showConfirmButton: false
                     });
@@ -167,7 +221,7 @@
 
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             try {
                 const response = await fetch(`/table/${document.getElementById('editId').value}`, {
                     method: 'PUT',
@@ -188,9 +242,10 @@
                     row.querySelector('td:nth-child(2)').textContent = data.table.number;
                     const statusBadge = row.querySelector('span');
                     statusBadge.textContent = data.table.status.toUpperCase();
-                    statusBadge.className = `px-3 py-1.5 text-sm font-semibold rounded-full 
+                    statusBadge.className =
+                        `px-3 py-1.5 text-sm font-semibold rounded-full 
                         ${data.table.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
-                    
+
                     closeEditModal();
                     Swal.fire({
                         icon: 'success',
@@ -227,7 +282,8 @@
                         const response = await fetch(`/table/${id}`, {
                             method: 'DELETE',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content
                             }
                         });
 

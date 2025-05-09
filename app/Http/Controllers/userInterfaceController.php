@@ -9,6 +9,7 @@ use App\Models\Toping;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class userInterfaceController extends Controller
@@ -43,14 +44,14 @@ class userInterfaceController extends Controller
      */
     public function store(Request $request)
     {
-    $request->validate([
-        'table_id' => 'required|exists:tables,id',
-    ]);
+        $request->validate([
+            'table_id' => 'required|exists:tables,id',
+        ]);
 
-    // Update status meja jadi occupied
-    $table = Table::find($request->table_id);
-    $table->status = 'occupied';
-    $table->save();
+        // Update status meja jadi occupied
+        $table = Table::find($request->table_id);
+        $table->status = 'occupied';
+        $table->save();
     }
 
     /**
@@ -97,10 +98,10 @@ class userInterfaceController extends Controller
 
             // Parse order data
             $orderData = json_decode($request->input('order_data'), true);
-            
+
             // Create transaction
             $transaction = Transaction::create([
-                'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                'user_id' => Auth::id(),
                 'table_id' => $orderData['table_id'],
                 'spiciness_level' => $orderData['spiciness_level'],
                 'bowl_size' => $orderData['bowl_size'],
@@ -109,10 +110,14 @@ class userInterfaceController extends Controller
                 'payment_provider_id' => $request->provider_id,
             ]);
 
+            // TAMBAHKAN INI: Update status meja
+            $table = Table::find($orderData['table_id']);
+            $table->update(['status' => 'occupied']);
+
             // Create transaction details
             foreach ($orderData['items'] as $item) {
                 $toping = Toping::findOrFail($item['id']);
-                
+
                 TransactionDetail::create([
                     'transaction_id' => $transaction->id,
                     'toping_id' => $item['id'],
@@ -137,12 +142,29 @@ class userInterfaceController extends Controller
                 'transactionId' => $transaction->id,
                 'status' => $transaction->status
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Error processing payment: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function completeTransaction($id)
+    {
+        try {
+            $transaction = Transaction::findOrFail($id);
+            $transaction->table->update(['status' => 'available']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status meja telah diupdate'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
     }

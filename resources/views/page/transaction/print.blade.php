@@ -3,163 +3,192 @@
 <head>
     <title>Struk #{{ $transaction->id }}</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         @media print {
             @page { 
-                size: 80mm auto;
-                margin: 2mm;
-                margin-top: 10mm;
+                size: 80mm auto; /* Ukuran kertas thermal 80mm */
+                margin: 2mm 4mm; /* Margin kiri-kanan lebih kecil */
+                padding: 0;
             }
             body { 
                 font-family: 'Courier New', monospace;
-                width: 72mm;
-                padding: 5px;
-                margin: 0 auto;
+                width: 72mm !important; /* Lebar konten sesungguhnya */
+                margin: 0 auto !important;
+                padding: 0;
                 font-size: 12px;
-                line-height: 1.2;
+                line-height: 1.1;
                 -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .no-print { 
-                display: none !important; 
             }
             * {
                 color: #000 !important;
                 background: transparent !important;
+                text-shadow: none !important;
+            }
+            .no-print { 
+                display: none !important; 
             }
             img {
-                filter: grayscale(100%);
-                max-width: 150px !important;
+                max-width: 68mm !important;
+                height: auto !important;
             }
         }
+
+        /* Style preview browser */
+        @media screen {
+            body {
+                font-family: 'Courier New', monospace;
+                width: 72mm;
+                margin: 20px auto;
+                padding: 10px;
+                border: 1px dashed #ccc;
+                font-size: 12px;
+                line-height: 1.1;
+            }
+        }
+
+        /* Layout utama */
         .header { 
             text-align: center; 
-            padding-bottom: 10px;
+            padding: 2mm 0;
         }
-        .divider { 
-            border-top: 1px dashed #000; 
-            margin: 10px 0;
+        .divider {
+            border-top: 1px solid #000;
+            margin: 3mm 0;
         }
-        .item { 
-            display: flex; 
+        .item-row {
+            display: flex;
             justify-content: space-between;
-            margin-bottom: 2px;
-            font-size: 11px;
+            margin: 1.5mm 0;
         }
-        .payment-proof { 
-            margin-top: 15px; 
-            text-align: center; 
+        .item-name {
+            flex: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        img { 
-            max-width: 100%; 
-            height: auto; 
-            border: 1px solid #ddd;
+        .item-price {
+            flex: 1;
+            text-align: right;
+            padding-left: 2mm;
         }
-        .text-red-500 {
-            color: #ef4444;
+        
+        /* Spesifik untuk thermal printer */
+        .thermal-text {
+            font-weight: bold;
+            letter-spacing: -0.5px;
+        }
+        
+        /* Optimasi gambar */
+        .payment-proof img {
+            border: 1px solid #ccc;
+            padding: 1mm;
+            margin: 2mm auto;
         }
     </style>
 </head>
 <body>
-    <div class="no-print" style="text-align: center; padding: 20px;">
-        <button onclick="window.print()" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Cetak Ulang
+    <!-- Tombol Control -->
+    <div class="no-print" style="text-align: center; padding: 5mm;">
+        <button onclick="window.print()" style="margin: 2mm; padding: 3mm 5mm; background: #4CAF50; color: white; border: none; cursor: pointer;">
+            🖨️ Cetak Ulang
         </button>
-        <button onclick="window.close()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Tutup
+        <button onclick="window.close()" style="margin: 2mm; padding: 3mm 5mm; background: #f44336; color: white; border: none; cursor: pointer;">
+            ❌ Tutup
         </button>
     </div>
 
-    <div class="header">
-        <h3>Warung Seblak Ajnira</h3>
-        <p>Jl. Raya Seblak No. 123</p>
-        <p>Telp: (022) 1234-5678</p>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="transaction-info">
-        <p>No. Struk: {{ $transaction->code }}</p>
-        <p>Tanggal: {{ $transaction->created_at->format('d/m/Y H:i') }}</p>
-        <p>Kasir: {{ $transaction->user->name }}</p>
-        <p>Meja: {{ $transaction->table->number ?? 'N/A' }}</p>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="items">
-        @foreach($transaction->details as $detail)
-        <div class="item">
-            <span>{{ $detail->toping->name }} ({{ $detail->quantity }}x)</span>
-            <span>Rp{{ number_format($detail->price * $detail->quantity, 0, ',', '.') }}</span>
+    <!-- Konten Struk -->
+    <div class="thermal-text">
+        <div class="header">
+            <h3 style="margin: 1mm 0; font-size: 14px;">WARUNG SEBLAK AJNIRA</h3>
+            <p>Jl. Raya Seblak No. 123</p>
+            <p>📞 (022) 1234-5678</p>
         </div>
-        @endforeach
-    </div>
 
-    <div class="divider"></div>
+        <div class="divider"></div>
 
-    <div class="total">
-        <div class="item">
-            <strong>Total:</strong>
-            <strong>Rp{{ number_format($transaction->total_price, 0, ',', '.') }}</strong>
+        <!-- Info Transaksi -->
+        <div class="transaction-info">
+            <div class="item-row">
+                <span>No. Struk:</span>
+                <span>{{ $transaction->code }}</span>
+            </div>
+            <div class="item-row">
+                <span>Tanggal:</span>
+                <span>{{ $transaction->created_at->format('d/m/y H:i') }}</span>
+            </div>
+            <div class="item-row">
+                <span>Kasir:</span>
+                <span>{{ $transaction->user->name }}</span>
+            </div>
+            <div class="item-row">
+                <span>Meja:</span>
+                <span>{{ $transaction->table->number ?? '-' }}</span>
+            </div>
         </div>
-        <p>Status: {{ ucfirst($transaction->status) }}</p>
-        <p>Metode Bayar: {{ $transaction->paymentProvider->name ?? 'Tunai' }}</p>
-    </div>
 
-    @if($transaction->payment_proof && Storage::exists($transaction->payment_proof))
-    <div class="payment-proof">
         <div class="divider"></div>
-        <h4>Bukti Pembayaran</h4>
-        <img src="{{ asset('storage/' . $transaction->payment_proof) }}" 
-             alt="Bukti Pembayaran"
-             style="max-width: 200px; max-height: 150px; margin: 10px auto;">
-    </div>
-    @elseif($transaction->payment_proof)
-    <p class="text-red-500">Bukti pembayaran tidak tersedia</p>
-    @endif
 
-    <div class="footer">
+        <!-- Daftar Item -->
+        <div class="items">
+            @foreach($transaction->details as $detail)
+            <div class="item-row">
+                <div class="item-name">{{ $detail->toping->name }} ({{ $detail->quantity }}x)</div>
+                <div class="item-price">Rp{{ number_format($detail->price * $detail->quantity, 0, ',', '.') }}</div>
+            </div>
+            @endforeach
+        </div>
+
         <div class="divider"></div>
-        <p>Terima kasih telah berkunjung</p>
-        <p>** Selera Pedas Nusantara **</p>
+
+        <!-- Total -->
+        <div class="total">
+            <div class="item-row" style="font-weight: bold;">
+                <span>TOTAL</span>
+                <span>Rp{{ number_format($transaction->total_price, 0, ',', '.') }}</span>
+            </div>
+            <div class="item-row">
+                <span>Status</span>
+                <span>{{ ucfirst($transaction->status) }}</span>
+            </div>
+            <div class="item-row">
+                <span>Pembayaran</span>
+                <span>{{ $transaction->paymentProvider->name ?? 'TUNAI' }}</span>
+            </div>
+        </div>
+
+        <!-- Bukti Bayar -->
+        @if($transaction->payment_proof && Storage::exists($transaction->payment_proof))
+        <div class="payment-proof">
+            <div class="divider"></div>
+            <p style="text-align: center; margin: 2mm 0;">BUKTI PEMBAYARAN</p>
+            <img src="{{ asset('storage/' . $transaction->payment_proof) }}" 
+                 alt="Bukti Bayar"
+                 style="max-width: 100%; height: auto; max-height: 40mm;">
+        </div>
+        @endif
+
+        <!-- Footer -->
+        <div class="footer" style="margin-top: 4mm;">
+            <div class="divider"></div>
+            <p style="text-align: center; margin: 3mm 0;">💐 Terima kasih telah berkunjung</p>
+            <p style="text-align: center; font-size: 10px;">www.seblak-ajnira.id</p>
+        </div>
     </div>
 
     <script>
-        // Auto print dan handling pop-up blocker
-        window.addEventListener('load', () => {
+        // Auto print dengan timeout untuk menghindari popup blocker
+        window.addEventListener('load', function() {
             @if(!app()->environment('local'))
-            const printAttempt = () => {
-                try {
-                    window.print();
-                } catch (e) {
-                    console.error('Print error:', e);
-                }
-            };
-            
-            if(window.opener === null) {
-                printAttempt();
-                const closeTimer = setInterval(() => {
-                    if(document.readyState === 'complete') {
-                        clearInterval(closeTimer);
-                        setTimeout(() => {
-                            window.close();
-                        }, 1000);
-                    }
-                }, 100);
-            }
+            setTimeout(function() {
+                window.print();
+                setTimeout(function() {
+                    window.close();
+                }, 1000);
+            }, 500);
             @endif
         });
-
-        window.onafterprint = () => {
-            if(window.opener === null) {
-                setTimeout(() => {
-                    window.close();
-                }, 500);
-            }
-        };
     </script>
 </body>
 </html>

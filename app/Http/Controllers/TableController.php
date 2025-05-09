@@ -16,8 +16,8 @@ class TableController extends Controller
             $entries = request('entries', 5);
 
             $tables = Table::when($search, function ($query) use ($search) {
-                    $query->where('number', 'like', "%$search%");
-                })
+                $query->where('number', 'like', "%$search%");
+            })
                 ->paginate($entries)
                 ->withQueryString();
 
@@ -26,7 +26,6 @@ class TableController extends Controller
                 'search' => $search,
                 'entries' => $entries
             ]);
-
         } catch (Exception $e) {
             return redirect()
                 ->route('error.index')
@@ -54,7 +53,6 @@ class TableController extends Controller
                 'success' => true,
                 'table' => $table
             ]);
-
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -64,7 +62,7 @@ class TableController extends Controller
         }
 
         $table = Table::findOrFail($request->table_id);
-    
+
         if ($table->is_occupied) {
             return response()->json([
                 'success' => false,
@@ -72,23 +70,23 @@ class TableController extends Controller
             ], 400);
         }
     }
-
     public function update(Request $request, $id)
     {
         try {
             $request->validate([
-                'number' => 'required|max:255|unique:tables,number,' . $id,
+                'number' => 'sometimes|required|max:255|unique:tables,number,' . $id, // Tambahkan 'sometimes'
                 'status' => 'required|in:available,occupied'
             ]);
 
             $table = Table::findOrFail($id);
-            $table->update($request->all());
+
+            // Update hanya field yang ada di request
+            $table->update($request->only(['number', 'status']));
 
             return response()->json([
                 'success' => true,
                 'table' => $table
             ]);
-
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
@@ -106,7 +104,6 @@ class TableController extends Controller
             return response()->json([
                 'success' => true
             ]);
-
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
@@ -120,7 +117,6 @@ class TableController extends Controller
         try {
             $exists = Table::where('number', $number)->exists();
             return response()->json(['exists' => $exists]);
-            
         } catch (Exception $e) {
             return response()->json([
                 'error' => 'Terjadi kesalahan: ' . $e->getMessage()

@@ -53,6 +53,11 @@ class TransactionController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        abort(404); // atau redirect ke halaman lain
+    }
+
     public function store(Request $request)
     {
         try {
@@ -67,6 +72,15 @@ class TransactionController extends Controller
                 'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048'
             ]);
 
+            // Cek status meja
+            $table = Table::findOrFail($validated['table_id']);
+            if ($table->status === 'occupied') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meja sedang digunakan'
+                ], 400);
+            }
+
             // Simpan file ke storage
             $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
 
@@ -79,8 +93,11 @@ class TransactionController extends Controller
                 'payment_provider_id' => $validated['payment_provider_id'],
                 'spiciness_level' => $validated['spiciness_level'],
                 'bowl_size' => $validated['bowl_size'],
-                'payment_proof' => $proofPath // Path relatif (payment_proofs/namafile.jpg)
+                'payment_proof' => $proofPath
             ]);
+
+            // Update status meja setelah transaksi berhasil dibuat
+            $table->update(['status' => 'occupied']);
 
             return response()->json([
                 'success' => true,
@@ -93,6 +110,11 @@ class TransactionController extends Controller
                 'errors' => $e->errors(),
                 'message' => 'Validasi gagal'
             ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -213,17 +235,17 @@ class TransactionController extends Controller
             'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'order_data' => 'required'
         ]);
-    
+
         DB::beginTransaction();
         try {
             $orderData = json_decode($request->order_data);
-            
-            if(!isset($orderData->bowl_size)) {
+
+            if (!isset($orderData->bowl_size)) {
                 throw new \Exception('Bowl size is required');
             }
-    
+
             $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
-    
+
             $transaction = Transaction::create([
                 'user_id' => Auth::id(),
                 'table_id' => $orderData->table_id,
@@ -234,10 +256,10 @@ class TransactionController extends Controller
                 'payment_proof' => $proofPath,
                 'status' => 'paid'
             ]);
-    
+
             // Set meja ke 'occupied' karena transaksi baru dibuat
             $transaction->table->update(['status' => 'occupied']);
-    
+
             DB::commit();
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -248,33 +270,44 @@ class TransactionController extends Controller
 
     public function report(Request $request)
     {
-        $minDate = Transaction::min('created_at') ?? now();
-        $maxDate = Transaction::max('created_at') ?? now();
+        try {
+            // Handle date filter
+            $startDate = $request->start ? Carbon::parse($request->start) : null;
+            $endDate = $request->end ? Carbon::parse($request->end)->endOfDay() : null;
 
-        $query = Transaction::with(['user', 'table', 'paymentProvider'])
-            ->when($request->start && $request->end, function ($q) use ($request) {
-                return $q->whereBetween('created_at', [$request->start, $request->end]);
-            })
-            ->when($request->search, function ($q, $search) {
-                return $q->whereHas('user', function ($u) use ($search) {
-                    $u->where('name', 'like', "%$search%");
+            $query = Transaction::with(['user', 'table', 'paymentProvider'])
+                ->when($startDate && $endDate, function ($q) use ($startDate, $endDate) {
+                    return $q->whereBetween('created_at', [$startDate, $endDate]);
                 })
-                    ->orWhereHas('table', function ($t) use ($search) {
-                        $t->where('number', 'like', "%$search%");
-                    })
-                    ->orWhere('total_price', 'like', "%$search%");
-            });
+                ->when($request->search, function ($q, $search) {
+                    return $q->where(function ($query) use ($search) {
+                        $query->whereHas('user', function ($u) use ($search) {
+                            $u->where('name', 'like', "%$search%");
+                        })
+                            ->orWhereHas('table', function ($t) use ($search) {
+                                $t->where('number', 'like', "%$search%");
+                            })
+                            ->orWhere('total_price', 'like', "%$search%");
+                    });
+                })
+                ->orderBy('created_at', 'desc');
 
-        $transactions = $query->paginate(10);
+            // Get min-max dates
+            $minDate = Transaction::oldest('created_at')->value('created_at') ?? now();
+            $maxDate = Transaction::latest('created_at')->value('created_at') ?? now();
 
-        return view('page.transaction.report', [
-            'transactions' => $transactions,
-            'minDate' => $minDate ? Carbon::parse($minDate)->format('Y-m-d') : now()->toDateString(),
-            'maxDate' => $maxDate ? Carbon::parse($maxDate)->format('Y-m-d') : now()->toDateString()
+            $transactions = $query->paginate(10)->withQueryString();
 
-        ]);
+            return view('page.transaction.report', [
+                'transactions' => $transactions,
+                'minDate' => Carbon::parse($minDate)->format('Y-m-d'),
+                'maxDate' => Carbon::parse($maxDate)->format('Y-m-d'),
+                'request' => $request
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Gagal memuat laporan: ' . $e->getMessage()]);
+        }
     }
-
     public function printAll(Request $request)
     {
         $query = Transaction::with(['user', 'table', 'paymentProvider'])
@@ -312,10 +345,29 @@ class TransactionController extends Controller
         return back();
     }
 
-    public function checkStatus(Transaction $transaction)
-{
-    return response()->json([
-        'status' => $transaction->status
-    ]);
-}
+    public function checkStatus($id)
+    {
+        $transaction = Transaction::findOrFail($id);
+        return response()->json([
+            'status' => $transaction->status
+        ]);
+    }
+    // app/Http/Controllers/TransactionController.php
+    public function completeTransaction($id)
+    {
+        try {
+            $transaction = Transaction::findOrFail($id);
+            $transaction->table->update(['status' => 'available']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status meja telah diupdate'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

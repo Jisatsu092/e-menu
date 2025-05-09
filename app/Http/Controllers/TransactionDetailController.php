@@ -23,7 +23,6 @@ class TransactionDetailController extends Controller
             'transaction' => $transaction,
             'toping' => $topings
         ]);
-        
     }
 
     /**
@@ -48,11 +47,11 @@ class TransactionDetailController extends Controller
     public function show(Transaction $transaction)
     {
         $transaction->load([
-            'details.toping', 
-            'user', 
+            'details.toping',
+            'user',
             'table'
         ]);
-        
+
         return view('transactions.details.show', compact('transaction'));
     }
     /**
@@ -80,8 +79,17 @@ class TransactionDetailController extends Controller
     }
 
     public function destroyAll()
-{
-    TransactionDetail::query()->delete();
-    return redirect()->back()->with('success', 'All transaction details cleared successfully.');
-}
+    {
+        TransactionDetail::query()->delete();
+        return redirect()->back()->with('success', 'All transaction details cleared successfully.');
+    }
+
+    public function report()
+    {
+        $transactions = TransactionDetail::with(['transaction', 'toping'])
+            ->get()
+            ->groupBy('transaction_id');
+
+        return view('page.transaction_detail.report', compact('transactions'));
+    }
 }

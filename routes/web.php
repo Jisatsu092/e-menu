@@ -37,7 +37,7 @@ Route::post('/confirm-payment', [TransactionController::class, 'confirmPayment']
 Route::put('/transaction/{transaction}/status', [TransactionController::class, 'updateStatus'])
     ->name('transaction.status');
 
-    Auth::routes(['verify' => true]);
+Auth::routes(['verify' => true]);
 // File: routes/web.php
 Route::resource('payment_providers', PaymentProviderController::class)
     ->middleware('auth');
@@ -48,42 +48,51 @@ Route::put(
 )
     ->name('payment_providers.toggle-status')
     ->middleware('auth');
+Route::get('/transaction-details/report', [TransactionDetailController::class, 'report'])->name('transaction_details.report');
+Route::delete('/transaction-details/clear-all', [TransactionDetailController::class, 'destroyAll'])
+    ->name('transaction_details.destroyAll');
+Route::put('/table/{id}', [TableController::class, 'update'])->name('table.update');
+// routes/web.php
+Route::get('/tables', function () {
+    return response()->json(App\Models\Table::all());
+});
 
-    Route::delete('/transaction-details/clear-all', [TransactionDetailController::class, 'destroyAll'])
-     ->name('transaction_details.destroyAll');
+Route::post('/transactions', [TransactionController::class, 'store']);
 // web.php
-Route::get('/transaksi/print/{transaction}', 
-    [TransactionController::class, 'print'])
+Route::get(
+    '/transaksi/print/{transaction}',
+    [TransactionController::class, 'print']
+)
     ->name('transaksi.print');
 
-    Route::get('/transaksi/print/{transaction}', [TransactionController::class, 'print'])
-     ->name('transaksi.print');
+Route::get('/transaksi/print/{transaction}', [TransactionController::class, 'print'])
+    ->name('transaksi.print');
 
-     Route::get('/beranda', function () {
-        $availableTables = Table::where('status', 'available')->count();
-        $occupiedTables = Table::where('status', 'occupied')->count();
-        $totalTables = Table::count();
+Route::get('/beranda', function () {
+    $availableTables = Table::where('status', 'available')->count();
+    $occupiedTables = Table::where('status', 'occupied')->count();
+    $totalTables = Table::count();
 
-        $totalUsers = User::count();
+    $totalUsers = User::count();
 
-        // Data transaksi
-        $dailyTransactions = Transaction::whereDate('created_at', Carbon::today())->count();
-        $weeklyTransactions = Transaction::whereBetween('created_at', [
-            Carbon::now()->startOfWeek(),
-            Carbon::now()->endOfWeek()
-        ])->count();
-        $monthlyTransactions = Transaction::whereMonth('created_at', Carbon::now()->month)->count();
+    // Data transaksi
+    $dailyTransactions = Transaction::whereDate('created_at', Carbon::today())->count();
+    $weeklyTransactions = Transaction::whereBetween('created_at', [
+        Carbon::now()->startOfWeek(),
+        Carbon::now()->endOfWeek()
+    ])->count();
+    $monthlyTransactions = Transaction::whereMonth('created_at', Carbon::now()->month)->count();
 
-        return view('beranda', compact(
-            'availableTables',
-            'occupiedTables',
-            'totalTables',
-            'totalUsers',
-            'dailyTransactions',
-            'weeklyTransactions',
-            'monthlyTransactions'
-        ));
-    })->middleware(['auth', 'verified'])->name('beranda');
+    return view('beranda', compact(
+        'availableTables',
+        'occupiedTables',
+        'totalTables',
+        'totalUsers',
+        'dailyTransactions',
+        'weeklyTransactions',
+        'monthlyTransactions'
+    ));
+})->middleware(['auth', 'verified'])->name('beranda');
 
 Route::get('/transactions/{transaction}/details', [TransactionDetailController::class, 'show'])
     ->name('transaction_details.show')
@@ -111,7 +120,7 @@ Route::put('/category/{id}', [CategoryController::class, 'update'])->name('categ
 Route::delete('/table/{id}', [TableController::class, 'destroy'])->name('table.destroy');
 
 Route::get('/user_interface', [userInterfaceController::class, 'index'])
-     ->middleware('auth');
+    ->middleware('auth');
 
 Route::put('/transaction/{id}/process', [TransactionController::class, 'process'])
     ->name('transaction.process');
