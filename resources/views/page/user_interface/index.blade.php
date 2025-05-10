@@ -103,6 +103,33 @@
             .mobile-card {
                 min-width: 80vw;
             }
+
+            #mobileCartDropdown {
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+                max-height: 80vh;
+                bottom: 80px;
+                left: 1rem;
+                right: 1rem;
+                width: auto;
+            }
+
+            #mobileCartItems::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            #mobileCartItems::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            #mobileCartItems::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 4px;
+            }
+
+            @media (min-width: 768px) {
+                #mobileCartDropdown {
+                    display: none !important;
+                }
             }
 
             @keyframes bounceIn {
@@ -391,32 +418,44 @@
         </div>
         <!-- Floating Mobile Cart -->
         <div class="fixed top-16 right-4 z-[1001]">
-            <button id="mobileCartButton" onclick="toggleMobileCart()"
-                class="bg-red-500 text-white p-3 rounded-full shadow-lg relative hover:bg-red-600 transition-transform transform hover:scale-110">
-                🛒
-                <span id="mobileCartBadge"
-                    class="absolute right-0 top-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">0</span>
-            </button>
-            <div id="mobileCartPanel"
-                class="hidden absolute mobile-cart-panel w-auto left-0 right-auto bg-white rounded-lg shadow-xl transition-all duration-300 origin-top-left animate-bounce-in z-50">
-                <div class="p-4 overflow-y-auto max-h-[60vh]">
-                    <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h3 class="text-lg font-bold">Keranjang</h3>
-                        <button onclick="toggleMobileCart()" class="text-gray-500 hover:text-gray-700">×</button>
+            <div class="fixed bottom-4 right-4 z-50 md:hidden">
+                <button id="mobileCartButton" onclick="toggleMobileCart()"
+                    class="bg-red-500 text-white p-4 rounded-full shadow-xl relative hover:bg-red-600 transition-transform transform hover:scale-110">
+                    🛒
+                    <span id="mobileCartBadge"
+                        class="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">0</span>
+                </button>
+            </div>
+            <div id="mobileCartDropdown"
+                class="fixed bottom-20 right-4 left-4 z-50 hidden bg-white rounded-xl shadow-2xl transition-all duration-300 origin-bottom-right transform">
+                <div class="p-4 max-h-[70vh] flex flex-col">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                        <h3 class="text-lg font-bold">Keranjang Belanja</h3>
+                        <div class="flex items-center space-x-4">
+                            <button onclick="clearCart()" class="text-red-500 text-sm">Hapus Semua</button>
+                            <button onclick="toggleMobileCart()" class="text-gray-500 hover:text-gray-700">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    <div id="mobileCartItems" class="space-y-3"></div>
-                    <div class="mt-4 pt-4 border-t">
+
+                    <div id="mobileCartItems" class="flex-1 overflow-y-auto space-y-3 mb-4"></div>
+
+                    <div class="pt-4 border-t">
                         <div class="flex justify-between mb-3">
                             <span class="font-medium">Total Item:</span>
                             <span id="mobileCartItemTotal" class="font-bold text-red-500">0 item</span>
                         </div>
-                        <div class="flex justify-between mb-3">
+                        <div class="flex justify-between mb-4">
                             <span class="font-medium">Total Harga:</span>
                             <span id="mobileCartTotal" class="font-bold text-red-500">Rp0</span>
                         </div>
                         <button onclick="openCheckoutModal()"
-                            class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600">
-                            Checkout
+                            class="w-full bg-red-500 text-white py-3 rounded-xl hover:bg-red-600 transition-colors font-medium">
+                            Checkout Sekarang
                         </button>
                     </div>
                 </div>
@@ -544,15 +583,12 @@
 
                 // Event listener untuk close dropdown dengan penanganan null
                 document.addEventListener('click', function(event) {
-                    // Untuk desktop
-                    const cartDropdown = document.getElementById('cartDropdown');
-                    const cartButton = document.querySelector('.hidden.md\\:block .relative button');
-
-                    if (cartDropdown && cartButton) {
-                        if (!cartDropdown.contains(event.target) && !cartButton.contains(event.target)) {
-                            cartDropdown.classList.add('hidden');
-                        }
-                    }
+                const cartButton = document.getElementById('mobileCartButton');
+                const cartDropdown = document.getElementById('mobileCartDropdown');
+                
+                if (!cartButton.contains(event.target) && !cartDropdown.contains(event.target)) {
+                    cartDropdown.classList.add('hidden');
+                }
 
                     // Untuk mobile
                     const mobilePanel = document.getElementById('mobileCartPanel');
@@ -603,36 +639,45 @@
                 const mobileItems = document.getElementById('mobileCartItems');
                 const desktopItems = document.getElementById('cartItems');
 
-                const cartItemHTML = cart.map(item => `
-                    <div class="flex justify-between items-center">
-                        <div>
+                mobileItems.innerHTML = cart.map(item => `
+                    <div class="flex justify-between items-start bg-gray-50 rounded-lg p-3">
+                        <div class="flex-1">
                             <p class="font-medium text-sm">${item.name}</p>
-                            <p class="text-xs text-gray-500">
-                                Qty: ${item.quantity} x Rp${item.price.toLocaleString('id-ID')}
-                            </p>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <button onclick="updateQuantity('${item.id}', -1, ${item.price})" 
+                                    class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-xs">
+                                    −
+                                </button>
+                                <span class="text-sm font-medium">${item.quantity}</span>
+                                <button onclick="updateQuantity('${item.id}', 1, ${item.price})" 
+                                    class="bg-red-500 text-white px-2 py-1 rounded-lg text-xs">
+                                    +
+                                </button>
+                            </div>
                         </div>
-                        <button onclick="removeItem('${item.id}')" 
-                                class="text-red-500 hover:text-red-700">
-                            ✕
-                        </button>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-red-500">
+                                Rp${(item.price * item.quantity).toLocaleString('id-ID')}
+                            </p>
+                            <button onclick="removeItem('${item.id}')" 
+                                class="text-gray-400 hover:text-red-500 text-xs mt-1">
+                                Hapus
+                            </button>
+                        </div>
                     </div>
                 `).join('');
-
-                mobileItems.innerHTML = cartItemHTML;
-                desktopItems.innerHTML = cartItemHTML;
             }
 
             document.addEventListener('click', function(event) {
-                const cartDropdown = document.getElementById('cartDropdown');
-                const cartButton = document.querySelector('.hidden.md\\:block .relative button');
-                const mobilePanel = document.getElementById('mobileCartPanel');
-                const mobileButton = document.getElementById('mobileCartButton');
+                    // Untuk desktop
+                    const cartDropdown = document.getElementById('cartDropdown');
+                    const cartButton = document.querySelector('.hidden.md\\:block .relative button');
 
-                // Desktop cart
-                if (cartDropdown && cartButton && !cartDropdown.contains(event.target) && !cartButton.contains(event
-                        .target)) {
-                    cartDropdown.classList.add('hidden');
-                }
+                    if (cartDropdown && cartButton) {
+                        if (!cartDropdown.contains(event.target) && !cartButton.contains(event.target)) {
+                            cartDropdown.classList.add('hidden');
+                        }
+                    }
 
                 // Mobile cart
                 if (mobilePanel && mobileButton && !mobilePanel.contains(event.target) && !mobileButton.contains(event
@@ -762,25 +807,24 @@
             }
 
             function toggleMobileCart() {
-                const panel = document.getElementById('mobileCartPanel');
-                if (panel) {
-                    panel.classList.toggle('hidden');
-                    panel.classList.toggle('animate-bounce-in');
+                const dropdown = document.getElementById('mobileCartDropdown');
+                dropdown.classList.toggle('hidden');
+                dropdown.classList.toggle('animate-bounce-in');
 
-                    // Auto-scroll ke dropdown saat muncul di mode mobile
-                    if (!panel.classList.contains('hidden') && window.innerWidth < 768) {
-                        setTimeout(() => {
-                            window.scrollTo({
-                                top: document.body.scrollHeight,
-                                behavior: 'smooth'
-                            });
-                        }, 100);
-                    }
+                if (!dropdown.classList.contains('hidden')) {
+                    // Tutup keyboard jika terbuka
+                    document.activeElement.blur();
+                    // Scroll ke bawah jika perlu
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
+                    });
                 }
             }
 
             // Fungsi Modal
             function openCheckoutModal() {
+                showModal('checkoutModal');
                 if (cart.length === 0) {
                     Swal.fire('Keranjang kosong!', 'Silakan tambahkan item terlebih dahulu', 'warning');
                     return;
@@ -799,6 +843,7 @@
                 document.getElementById('cartDropdown').classList.add('hidden');
                 document.getElementById('mobileCartPanel').classList.add('hidden');
                 document.getElementById('checkoutModal').classList.remove('hidden');
+                document.getElementById('mobileCartDropdown').classList.add('hidden');
 
                 refreshTableStatus();
 
@@ -1035,6 +1080,7 @@
 
             // Perbaikan fungsi showOrderModal
             function showOrderModal(status, transactionId) {
+                showModal('orderConfirmationModal');
                 try {
                     const modal = document.getElementById('orderConfirmationModal');
                     if (!modal) return;
@@ -1138,6 +1184,10 @@
             //     window.open(`/print/${transactionId}`, '_blank');
             // }
 
+            function showModal(modalId) {
+                document.getElementById(modalId).classList.remove('hidden');
+                document.getElementById('mobileCartDropdown').classList.add('hidden');
+            }
             function checkPendingOrder() {
                 try {
                     const pendingOrderStr = sessionStorage.getItem('pendingOrderStatus');

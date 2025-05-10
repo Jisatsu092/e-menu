@@ -137,6 +137,10 @@
                                     class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-md text-sm text-white shadow">
                                     ✏️ Edit
                                 </button>
+                                <button onclick="setAvailable('{{ $table->id }}')"
+                                    class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-md text-sm text-white shadow">
+                                    ✅ Available
+                                </button>
                                 <button onclick="deleteTable('${data.table.id}')"
                                     class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm text-white shadow">
                                     🗑️ Hapus
@@ -186,7 +190,7 @@
                     const statusBadge = row.querySelector('span');
                     statusBadge.textContent = 'AVAILABLE';
                     statusBadge.className =
-                    'px-3 py-1.5 text-sm font-semibold rounded-full bg-green-100 text-green-800';
+                        'px-3 py-1.5 text-sm font-semibold rounded-full bg-green-100 text-green-800';
 
                     Swal.fire({
                         icon: 'success',
