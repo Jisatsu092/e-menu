@@ -12,20 +12,7 @@
         <style>
             /* Base Styles */
             #orderConfirmationModal {
-                z-index: 1002
-            }
-
-            @media (max-width: 768px) {
-                #orderConfirmationModal {
-                    align-items: flex-start;
-                    padding-top: 20%;
-                }
-
-                #orderConfirmationModal>div {
-                    width: 95vw;
-                    margin: 0 auto;
-                    max-height: 80vh;
-                }
+                z-index: 1002;
             }
 
             .scroll-hide::-webkit-scrollbar {
@@ -471,11 +458,9 @@
             <div id="mobileCartDropdown"
                 class="fixed bottom-20 right-4 left-4 z-50 hidden bg-white rounded-xl shadow-2xl transition-all duration-300 origin-bottom-right transform">
                 <div class="p-4 max-h-[70vh] flex flex-col">
-                    {{-- <div class="flex justify-between items-center mb-4 pb-2 border-b"> --}
+                    {{-- <div class="flex justify-between items-center mb-4 pb-2 border-b"> --}}
                     <h3 class="text-lg font-bold">Keranjang Belanja</h3>
                     {{-- <div class="flex items-center space-x-4">
-                        <h3 class="text-lg font-bold">Keranjang Belanja</h3>
-                        {{-- <div class="flex items-center space-x-4">
                             <button onclick="clearCart()" class="text-red-500 text-sm">Hapus Semua</button>
                             <button onclick="toggleMobileCart()" class="text-gray-500 hover:text-gray-700">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -651,6 +636,7 @@
                             }
                         }
                     });
+
                 const desktopItems = document.getElementById('cartItems');
                 if (desktopItems) {
                     desktopItems.innerHTML = cart.map(item => `
@@ -669,31 +655,11 @@
                                     class="text-red-400 hover:text-red-600 text-xs mt-1">
                                     Hapus
                                 </button>
-                // Update item di keranjang mobile
-                const mobileItems = document.getElementById('mobileCartItems');
-                if (mobileItems) {
-                    mobileItems.innerHTML = cart.map(item => `
-                        <div class="flex justify-between items-start bg-gray-50 rounded-lg p-3">
-                            <div class="flex-1">
-                                <p class="font-medium text-sm">${item.name}</p>
-                                <div class="flex items-center space-x-2 mt-1">
-                                    <button onclick="updateQuantity('${item.id}', -1, ${item.price})" 
-                                        class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-xs">−</button>
-                                    <span class="text-sm font-medium">${item.quantity}</span>
-                                    <button onclick="updateQuantity('${item.id}', 1, ${item.price})" 
-                                        class="bg-red-500 text-white px-2 py-1 rounded-lg text-xs">+</button>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm font-medium text-red-500">
-                                    Rp${(item.price * item.quantity).toLocaleString('id-ID')}
-                                </p>
-                                <button onclick="removeItem('${item.id}')" 
-                                    class="text-gray-400 hover:text-red-500 text-xs mt-1">Hapus</button>
                             </div>
                         </div>
                     `).join('');
                 }
+
                 // Update item di keranjang mobile
                 const mobileItems = document.getElementById('mobileCartItems');
                 if (mobileItems) {
@@ -714,16 +680,10 @@
                                     ✕
                                 </button>
                             </div>
-                // Update item di modal checkout desktop
-                const orderItems = document.getElementById('orderItems');
-                if (orderItems) {
-                    orderItems.innerHTML = cart.map(item => `
-                        <div class="flex justify-between">
-                            <span>${item.name} (Qty: ${item.quantity})</span>
-                            <span>Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
                         </div>
                     `).join('');
                 }
+
                 // Update item di modal checkout desktop
                 const orderItems = document.getElementById('orderItems');
                 if (orderItems) {
@@ -1179,12 +1139,6 @@
             function closeImageModal() {
                 document.getElementById('imageModal').classList.add('hidden');
             }
-            // Fungsi untuk menghapus pratinjau gambar
-            function removeImagePreview() {
-                document.getElementById('paymentProof').value = '';
-                document.getElementById('imagePreviewContainer').classList.add('hidden');
-                document.getElementById('imagePreview').src = '';
-            }
 
             // Event listener untuk menutup dropdown saat klik di luar
             document.addEventListener('click', function(event) {
@@ -1274,8 +1228,7 @@
                 } else {
                     console.log('Elemen mobileCartDropdown tidak ditemukan');
                 }
-            
-            
+            }
         </script>
     </body>
 
