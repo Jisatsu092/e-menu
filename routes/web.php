@@ -42,6 +42,14 @@ Auth::routes(['verify' => true]);
 Route::resource('payment_providers', PaymentProviderController::class)
     ->middleware('auth');
 
+    Route::get('/tables', function () {
+        $tables = \App\Models\Table::select('id', 'number', 'status')
+            ->orderBy('number')
+            ->get();
+        
+        return response()->json($tables);
+    });
+
 Route::put(
     '/payment_providers/{payment_provider}/toggle-status',
     [PaymentProviderController::class, 'toggleStatus']
