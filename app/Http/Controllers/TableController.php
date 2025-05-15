@@ -13,7 +13,7 @@ class TableController extends Controller
     {
         try {
             $search = request('search');
-            $entries = request('entries', 5);
+            $entries = request('entries', 10);
 
             $tables = Table::when($search, function ($query) use ($search) {
                 $query->where('number', 'like', "%$search%");
