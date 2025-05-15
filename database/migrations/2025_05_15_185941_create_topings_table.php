@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('topings', function (Blueprint $table) {
             $table->id ();
             $table->string('name');
-            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+            $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->decimal('price', 10, 2);
             $table->unsignedInteger('stock')->default(0); // Perbaikan di sini
             $table->string('image')->nullable();

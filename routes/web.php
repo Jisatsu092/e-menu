@@ -107,10 +107,7 @@ Route::get('/transaction/{id}/print', [TransactionController::class, 'print'])->
 Route::get('/transaction/print-all', [TransactionController::class, 'printAll'])
     ->name('transaction.print.all');
 
-Route::post('/confirm-payment', [userInterfaceController::class, 'confirmPayment'])
-    ->name('payment.confirm')
-    ->middleware('auth');
-
+Route::put('/table/{id}', [TableController::class, 'update'])->name('table.update');
 Route::resource('transaction', TransactionController::class);
 Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
 Route::delete('/category/{id}', [CategoryController::class, 'destroy'])->name('category.destroy');

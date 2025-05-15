@@ -10,23 +10,9 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
         <style>
-            /* Tambahkan di bagian style */
+            /* Base Styles */
             #orderConfirmationModal {
                 z-index: 1002;
-                /* Lebih tinggi dari floating cart */
-            }
-
-            @media (max-width: 768px) {
-                #orderConfirmationModal {
-                    align-items: flex-start;
-                    padding-top: 20%;
-                }
-
-                #orderConfirmationModal>div {
-                    width: 95vw;
-                    margin: 0 auto;
-                    max-height: 80vh;
-                }
             }
 
             .scroll-hide::-webkit-scrollbar {
@@ -55,10 +41,20 @@
                 z-index: 50;
             }
 
-
+            /* Mobile Responsive Adjustments */
             @media (max-width: 768px) {
+                #orderConfirmationModal {
+                    align-items: flex-start;
+                    padding-top: 20%;
+                }
+
+                #orderConfirmationModal>div {
+                    width: 95vw;
+                    margin: 0 auto;
+                    max-height: 80vh;
+                }
+
                 .mobile-cart-panel {
-                    /* Lebar dinamis sesuai konten, dengan padding */
                     width: 90vw !important;
                     left: 5vw !important;
                     right: 5vw !important;
@@ -67,33 +63,35 @@
                     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
                 }
 
-                /* Scroll vertikal jika konten terlalu panjang */
                 .mobile-cart-panel .overflow-y-auto {
                     max-height: 65vh;
                 }
 
-                /* Tombol Checkout di mobile */
                 .mobile-cart-panel button[type="button"] {
                     width: 100%;
                     font-size: 0.9rem;
                     padding: 0.6rem;
                 }
+
+                #checkoutModal>div {
+                    max-height: 90vh;
+                    overflow: hidden;
+                }
+
+                #checkoutModal .modal-scrollable {
+                    max-height: 75vh;
+                    overflow-y: auto;
+                }
+
+                #tableNumber {
+                    max-height: 150px;
+                    -webkit-overflow-scrolling: touch;
+                }
             }
 
+            /* Cart and Dropdown Styles */
             #cartDropdown {
                 transition: all 0.3s ease;
-            }
-
-            @media (max-width: 768px) {
-                #cartDropdown {
-                    transform: translateY(0);
-                    bottom: 1rem;
-                    left: 2.5vw;
-                    right: 2.5vw;
-                    width: 95vw;
-                    z-index: 1001;
-                    border-radius: 1rem;
-                }
             }
 
             .horizontal-scroll::-webkit-scrollbar {
@@ -126,12 +124,26 @@
                 border-radius: 4px;
             }
 
-            @media (min-width: 768px) {
-                #mobileCartDropdown {
-                    display: none !important;
-                }
+            /* Di dalam tag style */
+            #cartItems::-webkit-scrollbar {
+                width: 6px;
             }
 
+            #cartItems::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 4px;
+            }
+
+            #cartItems::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 4px;
+            }
+
+            #cartItems::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+            /* Animations */
             @keyframes bounceIn {
                 0% {
                     transform: scale(0.9);
@@ -152,6 +164,25 @@
                 animation: bounceIn 0.3s ease;
             }
 
+            /* Image Modal Styles */
+            #imageModal {
+                z-index: 1002;
+                backdrop-filter: blur(5px);
+            }
+
+            #imageModal img {
+                box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            }
+
+            #imagePreview {
+                transition: transform 0.3s ease;
+            }
+
+            #imagePreview:hover {
+                transform: scale(1.02);
+            }
+
+            /* Form Elements */
             .payment-detail {
                 transition: all 0.2s ease;
             }
@@ -170,6 +201,7 @@
                 display: none;
             }
 
+            /* Category Buttons */
             .category-btn {
                 transition: all 0.2s ease;
                 flex-shrink: 0;
@@ -180,6 +212,7 @@
                 color: white;
             }
 
+            /* Utility Classes */
             .cart-badge {
                 @extend .absolute;
                 -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs;
@@ -204,20 +237,15 @@
                 text-red-500;
             }
 
-            #imageModal {
-                backdrop-filter: blur(5px);
+            /* Scrollable Table Dropdown */
+            select#tableNumber {
+                max-height: 200px;
+                overflow-y: auto;
             }
 
-            #imageModal img {
-                box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
-            }
-
-            #imagePreview {
-                transition: transform 0.3s ease;
-            }
-
-            #imagePreview:hover {
-                transform: scale(1.02);
+            /* Navbar Adjustment for Image Preview */
+            #imageModal[open]~.x-app-layout header {
+                display: none !important;
             }
         </style>
     </head>
@@ -241,7 +269,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Nomor Meja</label>
                             <select id="tableNumber" required class="mt-1 block w-full rounded-md border p-2"
-                                onchange="checkTableStatus(this.value)">
+                                style="max-height: 200px; overflow-y: auto;" onchange="checkTableStatus(this.value)">
                                 <option value="">Pilih Meja</option>
                                 @foreach ($tables as $table)
                                     <option value="{{ $table->id }}" data-status="{{ $table->status }}"
@@ -355,7 +383,7 @@
                             <label class="block text-sm font-medium text-gray-700">Upload Bukti Transfer</label>
                             <input type="file" id="paymentProof" accept="image/*"
                                 class="mt-1 block w-full rounded-md border p-2 hidden" onchange="previewImage(event)">
-                            <label for="paymentProof" class="cursor-pointer">
+                            <label id="uploadLabel" for="paymentProof" class="cursor-pointer">
                                 <div
                                     class="border-2 border-dashed rounded-md p-4 text-center mt-2 hover:bg-gray-50 transition-colors">
                                     <span class="text-blue-500">Klik untuk Upload Bukti Transfer</span>
@@ -363,7 +391,8 @@
                             </label>
                             <div id="imagePreviewContainer" class="mt-3 hidden">
                                 <div class="relative group">
-                                    <img id="imagePreview" class="max-h-40 rounded-lg shadow-sm cursor-zoom-in"
+                                    <img id="imagePreview"
+                                        class="max-h-40 rounded-lg shadow-sm cursor-zoom-in mx-auto"
                                         onclick="showImageModal(this.src)">
                                     <div
                                         class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -401,7 +430,7 @@
             <div class="bg-white rounded-lg p-6 w-full max-w-md animate-bounce-in mx-4">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
                     <h3 class="text-xl font-bold text-red-500">Pesanan Berhasil</h3>
-                    <button onclick="closeOrderModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
+                    <button onclick="closeOrderModal()" class="text-gray-500 hover:text-gray-700">×</button>
                 </div>
                 <div class="space-y-4 max-h-[70vh] modal-scrollable overflow-y-auto">
                     <div class="space-y-2">
@@ -429,9 +458,9 @@
             <div id="mobileCartDropdown"
                 class="fixed bottom-20 right-4 left-4 z-50 hidden bg-white rounded-xl shadow-2xl transition-all duration-300 origin-bottom-right transform">
                 <div class="p-4 max-h-[70vh] flex flex-col">
-                    <div class="flex justify-between items-center mb-4 pb-2 border-b">
-                        <h3 class="text-lg font-bold">Keranjang Belanja</h3>
-                        <div class="flex items-center space-x-4">
+                    {{-- <div class="flex justify-between items-center mb-4 pb-2 border-b"> --}}
+                    <h3 class="text-lg font-bold">Keranjang Belanja</h3>
+                    {{-- <div class="flex items-center space-x-4">
                             <button onclick="clearCart()" class="text-red-500 text-sm">Hapus Semua</button>
                             <button onclick="toggleMobileCart()" class="text-gray-500 hover:text-gray-700">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -439,8 +468,8 @@
                                         d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-                        </div>
-                    </div>
+                        </div> --}}
+                    {{-- </div> --}}
 
                     <div id="mobileCartItems" class="flex-1 overflow-y-auto space-y-3 mb-4"></div>
 
@@ -578,152 +607,102 @@
         </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                checkPendingOrder();
-
-                // Event listener untuk close dropdown dengan penanganan null
-                document.addEventListener('click', function(event) {
-                const cartButton = document.getElementById('mobileCartButton');
-                const cartDropdown = document.getElementById('mobileCartDropdown');
-                
-                if (!cartButton.contains(event.target) && !cartDropdown.contains(event.target)) {
-                    cartDropdown.classList.add('hidden');
-                }
-
-                    // Untuk mobile
-                    const mobilePanel = document.getElementById('mobileCartPanel');
-                    const mobileButton = document.getElementById('mobileCartButton');
-
-                    if (mobilePanel && mobileButton) {
-                        if (!mobilePanel.contains(event.target) && !mobileButton.contains(event.target)) {
-                            mobilePanel.classList.add('hidden');
-                            mobilePanel.classList.remove('animate-bounce-in');
-                        }
-                    }
-                });
-                window.toggleCart = function() {
-                    const dropdown = document.getElementById('cartDropdown');
-                    if (window.innerWidth >= 768) {
-                        dropdown.classList.toggle('hidden');
-                    }
-                };
-
-            });
-
-
-            function closeOrderModal() {
-                document.getElementById('orderConfirmationModal').classList.add('hidden');
-                sessionStorage.removeItem('pendingOrderStatus');
-            }
-
+            // Inisialisasi data global
             let cart = [];
             let cartVisible = false;
             const paymentProviders = @json($paymentProviders->where('is_active', true));
 
-            // Fungsi Keranjang
+            // Fungsi untuk memperbarui tampilan keranjang belanja
             function updateCartDisplay() {
                 const totalQty = cart.reduce((acc, item) => acc + item.quantity, 0);
                 const totalPrice = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-                // Update Desktop
-                document.getElementById('cartBadge').textContent = totalQty;
-                document.getElementById('cartTotal').textContent = `Rp${totalPrice.toLocaleString('id-ID')}`;
-                document.getElementById('cartItemTotal').textContent = `${totalQty} item`;
+                // Update badge dan teks di desktop & mobile
+                ['cartBadge', 'mobileCartBadge', 'cartTotal', 'cartItemTotal', 'mobileCartTotal', 'mobileCartItemTotal'].forEach
+                    (id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            switch (id) {
+                                case 'cartTotal':
+                                case 'mobileCartTotal':
+                                    el.textContent = `Rp${totalPrice.toLocaleString('id-ID')}`;
+                                    break;
+                                case 'cartItemTotal':
+                                case 'mobileCartItemTotal':
+                                    el.textContent = `${totalQty} item`;
+                                    break;
+                                default:
+                                    el.textContent = totalQty;
+                            }
+                        }
+                    });
 
-                // Update Mobile
-                document.getElementById('mobileCartBadge').textContent = totalQty;
-                document.getElementById('mobileCartTotal').textContent = `Rp${totalPrice.toLocaleString('id-ID')}`;
-                document.getElementById('mobileCartItemTotal').textContent = `${totalQty} item`;
-
-                // Update Items
-                const mobileItems = document.getElementById('mobileCartItems');
                 const desktopItems = document.getElementById('cartItems');
-
-                mobileItems.innerHTML = cart.map(item => `
-                    <div class="flex justify-between items-start bg-gray-50 rounded-lg p-3">
-                        <div class="flex-1">
-                            <p class="font-medium text-sm">${item.name}</p>
-                            <div class="flex items-center space-x-2 mt-1">
-                                <button onclick="updateQuantity('${item.id}', -1, ${item.price})" 
-                                    class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-xs">
-                                    −
-                                </button>
-                                <span class="text-sm font-medium">${item.quantity}</span>
-                                <button onclick="updateQuantity('${item.id}', 1, ${item.price})" 
-                                    class="bg-red-500 text-white px-2 py-1 rounded-lg text-xs">
-                                    +
+                if (desktopItems) {
+                    desktopItems.innerHTML = cart.map(item => `
+                        <div class="flex justify-between items-center bg-gray-50 rounded-lg p-3 mb-2">
+                            <div class="flex-1">
+                                <p class="font-medium text-sm text-gray-700">
+                                    ${item.name} 
+                                    <span class="text-gray-500 ml-2">(Qty: ${item.quantity})</span>
+                                </p>
+                            </div>
+                            <div class="text-right pl-4">
+                                <p class="text-sm font-semibold text-red-500">
+                                    Rp${(item.price * item.quantity).toLocaleString('id-ID')}
+                                </p>
+                                <button onclick="removeItem('${item.id}')" 
+                                    class="text-red-400 hover:text-red-600 text-xs mt-1">
+                                    Hapus
                                 </button>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <p class="text-sm font-medium text-red-500">
-                                Rp${(item.price * item.quantity).toLocaleString('id-ID')}
-                            </p>
-                            <button onclick="removeItem('${item.id}')" 
-                                class="text-gray-400 hover:text-red-500 text-xs mt-1">
-                                Hapus
-                            </button>
+                    `).join('');
+                }
+
+                // Update item di keranjang mobile
+                const mobileItems = document.getElementById('mobileCartItems');
+                if (mobileItems) {
+                    mobileItems.innerHTML = cart.map(item => `
+                        <div class="flex justify-between items-center bg-white rounded-lg p-3 mb-2 border">
+                            <div class="flex-1">
+                                <p class="font-medium text-sm text-gray-700">
+                                    ${item.name}
+                                    <span class="text-gray-500 text-xs">(x${item.quantity})</span>
+                                </p>
+                            </div>
+                            <div class="text-right pl-4">
+                                <p class="text-sm font-semibold text-red-500">
+                                    Rp${(item.price * item.quantity).toLocaleString('id-ID')}
+                                </p>
+                                <button onclick="removeItem('${item.id}')" 
+                                    class="text-red-500 hover:text-red-700 text-xs">
+                                    ✕
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
+
+                // Update item di modal checkout desktop
+                const orderItems = document.getElementById('orderItems');
+                if (orderItems) {
+                    orderItems.innerHTML = cart.map(item => `
+                        <div class="flex justify-between">
+                            <span>${item.name} (Qty: ${item.quantity})</span>
+                            <span>Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // Update total harga di semua modal
+                ['modalTotal', 'paymentTotal'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = `Rp${totalPrice.toLocaleString('id-ID')}`;
+                });
             }
 
-            document.addEventListener('click', function(event) {
-                    // Untuk desktop
-                    const cartDropdown = document.getElementById('cartDropdown');
-                    const cartButton = document.querySelector('.hidden.md\\:block .relative button');
-
-                    if (cartDropdown && cartButton) {
-                        if (!cartDropdown.contains(event.target) && !cartButton.contains(event.target)) {
-                            cartDropdown.classList.add('hidden');
-                        }
-                    }
-
-                // Mobile cart
-                if (mobilePanel && mobileButton && !mobilePanel.contains(event.target) && !mobileButton.contains(event
-                        .target)) {
-                    mobilePanel.classList.add('hidden');
-                    mobilePanel.classList.remove('animate-bounce-in');
-                }
-
-                // Sembunyikan dropdown saat klik tombol checkout
-                const checkoutButton = document.querySelector('[onclick="openCheckoutModal()"]');
-                if (checkoutButton && event.target.closest('[onclick="openCheckoutModal()"]')) {
-                    if (cartDropdown) cartDropdown.classList.add('hidden');
-                    if (mobilePanel) mobilePanel.classList.add('hidden');
-                }
-            });
-
-            window.filterByCategory = function(categoryId) {
-                // Update active class
-                document.querySelectorAll('.category-btn').forEach(btn => {
-                    btn.classList.remove('active', 'bg-red-500', 'text-white');
-                    btn.classList.add('bg-gray-100', 'text-gray-600');
-                });
-
-                // Cari tombol yang sesuai dengan kategori
-                const activeBtn = [...document.querySelectorAll('.category-btn')]
-                    .find(btn => btn.textContent.trim() ===
-                        (categoryId === 'all' ? 'Semua Topping' :
-                            document.querySelector(`[onclick="filterByCategory('${categoryId}')"]`)?.textContent?.trim()));
-
-                if (activeBtn) {
-                    activeBtn.classList.remove('bg-gray-100', 'text-gray-600');
-                    activeBtn.classList.add('active', 'bg-red-500', 'text-white');
-                }
-
-                // Filter items
-                const allItems = document.querySelectorAll('[data-category-id]');
-                allItems.forEach(item => {
-                    if (categoryId === 'all' || item.dataset.categoryId === categoryId) {
-                        item.classList.remove('hidden');
-                    } else {
-                        item.classList.add('hidden');
-                    }
-                });
-            };
-
-
+            // Fungsi untuk menambah/mengurangi jumlah item
             window.updateQuantity = function(id, change, price) {
                 const itemIndex = cart.findIndex(item => item.id === id);
                 const stockElement = document.getElementById(`stock-${id}`);
@@ -733,15 +712,12 @@
 
                 if (itemIndex > -1) {
                     const newQty = cart[itemIndex].quantity + change;
-
-                    // Pastikan qty tidak bisa negatif
                     if (newQty < 0) return;
 
                     if (newQty === 0) {
-                        // Hapus item jika quantity mencapai 0
                         stockElement.textContent = currentStock + cart[itemIndex].quantity;
                         cart.splice(itemIndex, 1);
-                        document.getElementById(`qty-${id}`).textContent = 0; // Pastikan indikator 0
+                        document.getElementById(`qty-${id}`).textContent = 0;
                     } else {
                         if (newQty > currentStock) {
                             Swal.fire('Stok tidak cukup!', '', 'warning');
@@ -759,8 +735,8 @@
                     }
                     cart.push({
                         id: id,
-                        name: document.querySelector(`#qty-${id}`).parentElement.parentElement.parentElement
-                            .querySelector('h3').textContent,
+                        name: document.querySelector(`#qty-${id}`).closest('.bg-white').querySelector('h3')
+                            .textContent,
                         price: price,
                         quantity: 1
                     });
@@ -768,24 +744,23 @@
                     const qtyDisplay = document.getElementById(`qty-${id}`);
                     if (qtyDisplay) qtyDisplay.textContent = 1;
                 }
-
                 updateCartDisplay();
-            };
+            }
 
+            // Fungsi untuk menghapus item dari keranjang
             function removeItem(id) {
                 const itemIndex = cart.findIndex(item => item.id === id);
                 const removedItem = cart[itemIndex];
                 const stockElement = document.getElementById(`stock-${id}`);
-
                 if (stockElement) {
                     stockElement.textContent = parseInt(stockElement.textContent) + removedItem.quantity;
                 }
-
                 cart = cart.filter(item => item.id !== id);
                 document.getElementById(`qty-${id}`).textContent = 0;
                 updateCartDisplay();
             }
 
+            // Fungsi untuk mengosongkan keranjang
             function clearCart() {
                 cart.forEach(item => {
                     const stockElement = document.getElementById(`stock-${item.id}`);
@@ -795,69 +770,314 @@
                 });
                 cart = [];
                 document.querySelectorAll('[id^="qty-"]').forEach(el => el.textContent = 0);
-                document.getElementById('mobileCart').innerHTML = '';
                 updateCartDisplay();
             }
 
-            function toggleCart() {
-                if (window.innerWidth >= 768) {
-                    const dropdown = document.getElementById('cartDropdown');
-                    dropdown.classList.toggle('hidden');
+            // Fungsi untuk mengatur kategori aktif
+            window.filterByCategory = function(categoryId) {
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.classList.remove('active', 'bg-red-500', 'text-white');
+                    btn.classList.add('bg-gray-100', 'text-gray-600');
+                });
+
+                const activeBtn = [...document.querySelectorAll('.category-btn')]
+                    .find(btn => btn.textContent.trim() ===
+                        (categoryId === 'all' ? 'Semua Topping' :
+                            document.querySelector(`[onclick=\"filterByCategory('${categoryId}')\"]`)?.textContent?.trim())
+                    );
+
+                if (activeBtn) {
+                    activeBtn.classList.remove('bg-gray-100', 'text-gray-600');
+                    activeBtn.classList.add('active', 'bg-red-500', 'text-white');
                 }
+
+                const allItems = document.querySelectorAll('[data-category-id]');
+                allItems.forEach(item => {
+                    if (categoryId === 'all' || item.dataset.categoryId === categoryId) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
             }
 
-            function toggleMobileCart() {
-                const dropdown = document.getElementById('mobileCartDropdown');
-                dropdown.classList.toggle('hidden');
-                dropdown.classList.toggle('animate-bounce-in');
-
-                if (!dropdown.classList.contains('hidden')) {
-                    // Tutup keyboard jika terbuka
-                    document.activeElement.blur();
-                    // Scroll ke bawah jika perlu
-                    window.scrollTo({
-                        top: document.body.scrollHeight,
-                        behavior: 'smooth'
-                    });
-                }
-            }
-
-            // Fungsi Modal
+            // Fungsi untuk membuka modal checkout
             function openCheckoutModal() {
-                showModal('checkoutModal');
                 if (cart.length === 0) {
                     Swal.fire('Keranjang kosong!', 'Silakan tambahkan item terlebih dahulu', 'warning');
                     return;
                 }
+                showModal('checkoutModal');
+                refreshTableStatus();
+                updateCartDisplay();
+                document.getElementById('cartDropdown')?.classList.add('hidden');
+                document.getElementById('mobileCartDropdown')?.classList.add('hidden');
+            }
 
+            // Fungsi untuk menampilkan detail pembayaran
+            function showPaymentDetails() {
+                const providerId = document.getElementById('paymentMethod').value;
+                const provider = paymentProviders.find(p => p.id == providerId);
+                const paymentDetails = document.getElementById('paymentDetails');
+                if (provider) {
+                    paymentDetails.classList.remove('hidden');
+                    document.getElementById('providerLogo').src = provider.logo ? "{{ asset('storage/') }}/" + provider.logo :
+                        '';
+                    document.getElementById('providerName').textContent = provider.name;
+                    document.getElementById('providerType').textContent = provider.type;
+                    document.getElementById('accountNumber').textContent = provider.account_number;
+                    document.getElementById('accountName').textContent = provider.account_name;
+                    document.getElementById('instructions').textContent = provider.instructions;
+                } else {
+                    paymentDetails.classList.add('hidden');
+                }
+            }
 
-                document.getElementById('orderItems').innerHTML = cart.map(item => `
+            // Fungsi untuk memproses pembayaran
+            async function processPayment(e) {
+                e.preventDefault();
+                const tableSelect = document.getElementById('tableNumber');
+                const selectedOption = tableSelect.options[tableSelect.selectedIndex];
+                const spicinessLevel = document.getElementById('spicinessLevel').value;
+                const bowlSize = document.getElementById('bowlSize').value;
+
+                if (!tableSelect.value || !spicinessLevel || !bowlSize) {
+                    Swal.fire('Error!', 'Harap lengkapi semua field!', 'error');
+                    return;
+                }
+
+                if (selectedOption.dataset.status === 'occupied') {
+                    Swal.fire('Meja Terisi!', 'Silakan pilih meja lain yang tersedia.', 'warning');
+                    tableSelect.focus();
+                    return;
+                }
+
+                const orderData = {
+                    table_id: tableSelect.value,
+                    spiciness_level: spicinessLevel,
+                    bowl_size: bowlSize,
+                    items: cart,
+                    total_price: cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
+                };
+
+                sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
+                updateCartDisplay();
+                closeCheckoutModal();
+                document.getElementById('paymentConfirmationModal').classList.remove('hidden');
+
+                const paymentOrderItems = document.getElementById('paymentOrderItems');
+                paymentOrderItems.innerHTML = cart.map(item => `
                     <div class="flex justify-between">
                         <span>${item.name} (Qty: ${item.quantity})</span>
                         <span>Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
                     </div>
                 `).join('');
 
-                const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-                document.getElementById('modalTotal').textContent = `Rp${total.toLocaleString('id-ID')}`;
-                document.getElementById('cartDropdown').classList.add('hidden');
-                document.getElementById('mobileCartPanel').classList.add('hidden');
-                document.getElementById('checkoutModal').classList.remove('hidden');
-                document.getElementById('mobileCartDropdown').classList.add('hidden');
-
-                refreshTableStatus();
-
             }
 
-            function closeCheckoutModal() {
-                document.getElementById('checkoutModal').classList.add('hidden');
+            async function submitPayment() {
+                const paymentProof = document.getElementById('paymentProof').files[0];
+                const providerId = document.getElementById('paymentMethod').value;
+                const orderData = JSON.parse(sessionStorage.getItem('pendingOrder'));
+
+                if (!providerId) {
+                    Swal.fire('Error!', 'Harap pilih metode pembayaran', 'error');
+                    return;
+                }
+
+                if (!paymentProof) {
+                    Swal.fire('Error!', 'Harap upload bukti pembayaran', 'error');
+                    return;
+                }
+
+                if (!paymentProof.type.startsWith('image/')) {
+                    Swal.fire('Error!', 'File harus berupa gambar', 'error');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('payment_proof', paymentProof);
+                formData.append('provider_id', providerId);
+                formData.append('order_data', JSON.stringify({
+                    table_id: orderData.table_id,
+                    spiciness_level: orderData.spiciness_level,
+                    bowl_size: orderData.bowl_size,
+                    total_price: orderData.total_price,
+                    items: cart.map(item => ({
+                        id: item.id,
+                        quantity: item.quantity
+                    }))
+                }));
+
+                try {
+                    const response = await fetch('/confirm-payment', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: formData
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        const transactionData = {
+                            showModal: true,
+                            transactionId: result.transactionId,
+                            timestamp: Date.now()
+                        };
+                        sessionStorage.setItem('pendingOrderStatus', JSON.stringify(transactionData));
+                        showOrderModal(result.status, result.transactionId);
+                        closePaymentModal();
+                        clearCart();
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Payment error:', error);
+                    Swal.fire('Error!', error.message, 'error');
+                }
             }
 
-            function closePaymentModal() {
-                document.getElementById('paymentConfirmationModal').classList.add('hidden');
+            // Fungsi untuk memvalidasi status meja
+            function checkTableStatus(tableId) {
+                const selectedOption = document.querySelector(`#tableNumber option[value="${tableId}"]`);
+                const statusMessage = document.getElementById('tableStatusMessage');
+                if (selectedOption) {
+                    if (selectedOption.dataset.status === 'occupied') {
+                        statusMessage.innerHTML = '<span class="text-red-500">⛔ Meja sedang digunakan!</span>';
+                        document.getElementById('tableNumber').value = '';
+                    } else {
+                        statusMessage.innerHTML = '<span class="text-green-500">✅ Meja tersedia</span>';
+                    }
+                }
             }
 
-            // Fungsi Copy
+            // Fungsi untuk menyegarkan status meja
+            async function refreshTableStatus() {
+                try {
+                    const response = await fetch('/tables');
+                    const tables = await response.json();
+                    const select = document.getElementById('tableNumber');
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">Pilih Meja</option>';
+                    tables.forEach(table => {
+                        const option = new Option(
+                            `Meja ${table.number} - ${table.status === 'occupied' ? '(Terisi)' : '(Tersedia)'}`,
+                            table.id
+                        );
+                        option.dataset.status = table.status;
+                        option.disabled = table.status === 'occupied';
+                        select.appendChild(option);
+                    });
+                    select.value = currentValue;
+                    if (currentValue) checkTableStatus(currentValue);
+                } catch (error) {
+                    console.error('Gagal memperbarui status meja:', error);
+                }
+            }
+
+            // Fungsi untuk menampilkan modal pesanan
+            function showOrderModal(status, transactionId) {
+                console.log('showOrderModal status:', status); // Debugging
+                const modal = document.getElementById('orderConfirmationModal');
+                const statusElement = modal.querySelector('.status-text');
+                const printBtn = modal.querySelector('#printButton');
+
+                if (statusElement && printBtn) {
+                    statusElement.textContent = status;
+                    statusElement.className = `font-bold ${status === 'proses' ? 'text-green-500' : 'text-yellow-500'}`;
+                    printBtn.style.display = status === 'proses' ? 'block' : 'none';
+                    printBtn.dataset.transactionId = transactionId;
+                }
+                modal.classList.remove('hidden');
+            }
+
+            // Fungsi untuk mencetak pesanan
+            function printOrder() {
+                try {
+                    const transactionId = document.getElementById('printButton').dataset.transactionId;
+                    if (!transactionId) throw new Error('ID Transaksi tidak valid');
+                    fetch(`/transaksi/print/${transactionId}`)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Gagal memuat data cetakan');
+                            return response.text();
+                        })
+                        .then(html => {
+                            const printWindow = window.open('', '_blank');
+                            if (!printWindow || printWindow.closed) {
+                                throw new Error('Pop-up diblokir. Izinkan pop-up untuk mencetak');
+                            }
+                            printWindow.document.write(html);
+                            printWindow.document.close();
+                            setTimeout(() => {
+                                printWindow.print();
+                                printWindow.onafterprint = () => {
+                                    sessionStorage.removeItem('pendingOrderStatus');
+                                    printWindow.close();
+                                };
+                            }, 500);
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Mencetak',
+                                html: `Silakan coba lagi atau <a href="/transaksi/print/${transactionId}" 
+                                   target="_blank" class="text-blue-500">buka halaman cetak</a>`,
+                            });
+                        });
+                } catch (error) {
+                    console.error('Print error:', error);
+                    Swal.fire('Error!', error.message, 'error');
+                }
+            }
+
+            // Fungsi untuk memeriksa pesanan yang tertunda
+            function checkPendingOrder() {
+                try {
+                    const pendingOrderStr = sessionStorage.getItem('pendingOrderStatus');
+                    if (!pendingOrderStr) return;
+                    const pendingOrder = JSON.parse(pendingOrderStr);
+                    if (!pendingOrder || !pendingOrder.showModal) return;
+                    const oneHourAgo = Date.now() - 3600000;
+                    if (pendingOrder.timestamp > oneHourAgo) {
+                        fetch(`/transaction/status/${pendingOrder.transactionId}`)
+                            .then(response => {
+                                if (!response.ok) throw new Error('Gagal memuat status');
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log('Fetched status:', data.status); // Debugging
+                                showPersistedOrderModal(data.status, pendingOrder.transactionId);
+                            })
+                            .catch(error => {
+                                console.error('Error fetching status:', error);
+                                sessionStorage.removeItem('pendingOrderStatus');
+                            });
+                    } else {
+                        sessionStorage.removeItem('pendingOrderStatus');
+                    }
+                } catch (error) {
+                    console.error('Error checking pending order:', error);
+                    sessionStorage.removeItem('pendingOrderStatus');
+                }
+            }
+
+            // Fungsi untuk menampilkan modal yang tertunda
+            function showPersistedOrderModal(status, transactionId) {
+                console.log('showPersistedOrderModal status:', status); // Debugging
+                const modal = document.getElementById('orderConfirmationModal');
+                const statusElement = modal.querySelector('.status-text');
+                const printButton = document.getElementById('printButton');
+
+                if (statusElement && printButton) {
+                    statusElement.textContent = status;
+                    statusElement.className = `font-bold ${status === 'proses' ? 'text-green-500' : 'text-yellow-500'}`;
+                    printButton.style.display = status === 'proses' ? 'block' : 'none';
+                    printButton.dataset.transactionId = transactionId;
+                }
+                modal.classList.remove('hidden');
+            }
+
+            // Fungsi untuk menyalin nomor rekening
             function copyToClipboard(element) {
                 const text = element.querySelector('span').innerText;
                 try {
@@ -883,64 +1103,98 @@
                 }
             }
 
-            // Fungsi Tampilkan Detail Pembayaran
-            function showPaymentDetails() {
-                const providerId = document.getElementById('paymentMethod').value;
-                const provider = paymentProviders.find(p => p.id == providerId);
-                const paymentDetails = document.getElementById('paymentDetails');
-
-                if (provider) {
-                    paymentDetails.classList.remove('hidden');
-                    document.getElementById('providerLogo').src = provider.logo ?
-                        "{{ asset('storage/') }}/" + provider.logo : '';
-                    document.getElementById('providerName').textContent = provider.name;
-                    document.getElementById('providerType').textContent = provider.type;
-                    document.getElementById('accountNumber').textContent = provider.account_number;
-                    document.getElementById('accountName').textContent = provider.account_name;
-                    document.getElementById('instructions').textContent = provider.instructions;
-                } else {
-                    paymentDetails.classList.add('hidden');
+            // Fungsi untuk menampilkan modal gambar
+            function previewImage(event) {
+                const input = event.target;
+                const container = document.getElementById('imagePreviewContainer');
+                const preview = document.getElementById('imagePreview');
+                const uploadLabel = document.getElementById('uploadLabel');
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        container.classList.remove('hidden');
+                        uploadLabel.classList.add('hidden');
+                    }
+                    reader.readAsDataURL(input.files[0]);
                 }
             }
 
-            async function processPayment(e) {
-                e.preventDefault();
-                const tableNumber = document.getElementById('tableNumber').value;
-                const spicinessLevel = document.getElementById('spicinessLevel').value;
-                const bowlSize = document.getElementById('bowlSize').value;
+            function removeImagePreview() {
+                document.getElementById('paymentProof').value = '';
+                document.getElementById('imagePreviewContainer').classList.add('hidden');
+                document.getElementById('imagePreview').src = '';
+                document.getElementById('uploadLabel').classList.remove('hidden');
+            }
 
-                if (!tableNumber || !spicinessLevel || !bowlSize) {
-                    Swal.fire('Error!', 'Harap lengkapi semua field!', 'error');
-                    return;
+            // Fungsi untuk menampilkan gambar di modal
+            function showImageModal(src) {
+                const modal = document.getElementById('imageModal');
+                const modalImage = document.getElementById('modalImage');
+                modalImage.src = src;
+                modal.classList.remove('hidden');
+            }
+
+            // Fungsi untuk menutup modal gambar
+            function closeImageModal() {
+                document.getElementById('imageModal').classList.add('hidden');
+            }
+
+            // Event listener untuk menutup dropdown saat klik di luar
+            document.addEventListener('click', function(event) {
+                // Desktop dropdown
+                const cartDropdown = document.getElementById('cartDropdown');
+                const cartButton = document.querySelector('.hidden.md\\:block .relative button');
+                if (cartDropdown && cartButton &&
+                    !cartDropdown.contains(event.target) &&
+                    !cartButton.contains(event.target)) {
+                    cartDropdown.classList.add('hidden');
                 }
 
-                const orderData = {
-                    table_id: tableNumber,
-                    spiciness_level: spicinessLevel,
-                    bowl_size: bowlSize,
-                    items: cart,
-                    total_price: cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
-                };
+                // Mobile dropdown
+                const mobileCartDropdown = document.getElementById('mobileCartDropdown');
+                const mobileCartButton = document.getElementById('mobileCartButton');
+                if (mobileCartDropdown && mobileCartButton &&
+                    !mobileCartButton.contains(event.target) &&
+                    !mobileCartDropdown.contains(event.target)) {
+                    mobileCartDropdown.classList.add('hidden');
+                }
+            });
 
-                sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
+            // Toggle cart untuk desktop
+            window.toggleCart = function() {
+                const dropdown = document.getElementById('cartDropdown');
+                if (window.innerWidth >= 768 && dropdown) {
+                    dropdown.classList.toggle('hidden');
+                }
+            };
 
-                // Tampilkan item di modal pembayaran
-                const paymentOrderItems = document.getElementById('paymentOrderItems');
-                paymentOrderItems.innerHTML = cart.map(item => `
-                    <div class="flex justify-between">
-                        <span>${item.name} (Qty: ${item.quantity})</span>
-                        <span>Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
-                    </div>
-                `).join('');
-
-                // Update total harga
-                document.getElementById('paymentTotal').textContent =
-                    `Rp${orderData.total_price.toLocaleString('id-ID')}`;
-
-                // Buka modal pembayaran
-                closeCheckoutModal();
-                document.getElementById('paymentConfirmationModal').classList.remove('hidden');
+            // Fungsi untuk menampilkan modal
+            function showModal(modalId) {
+                document.getElementById(modalId).classList.remove('hidden');
             }
+
+            // Inisialisasi awal saat DOM dimuat
+            document.addEventListener('DOMContentLoaded', function() {
+                checkPendingOrder();
+
+                // Interval refresh otomatis saat modal checkout terbuka
+                setInterval(async () => {
+                    const modal = document.getElementById('checkoutModal');
+                    if (modal && !modal.classList.contains('hidden')) {
+                        await refreshTableStatus();
+                    }
+                }, 5000);
+            });
+
+            // Event listener untuk tombol tutup modal
+            window.closeCheckoutModal = function() {
+                document.getElementById('checkoutModal').classList.add('hidden');
+            };
+
+            window.closePaymentModal = function() {
+                document.getElementById('paymentConfirmationModal').classList.add('hidden');
+            };
 
             window.addEventListener('beforeunload', function(e) {
                 const modal = document.getElementById('orderConfirmationModal');
@@ -958,291 +1212,22 @@
                 }
             });
 
-            async function submitPayment() {
-                const paymentProof = document.getElementById('paymentProof').files[0];
-                const providerId = document.getElementById('paymentMethod').value;
-                const orderData = JSON.parse(sessionStorage.getItem('pendingOrder'));
-
-                if (!providerId) {
-                    Swal.fire('Error!', 'Harap pilih metode pembayaran', 'error');
-                    return;
-                }
-
-                if (!paymentProof) {
-                    Swal.fire('Error!', 'Harap upload bukti pembayaran', 'error');
-                    return;
-                }
-
-                // Validasi tipe file
-                if (!paymentProof.type.startsWith('image/')) {
-                    Swal.fire('Error!', 'File harus berupa gambar', 'error');
-                    return;
-                }
-
-                if (!paymentProof) {
-                    Swal.fire('Error!', 'Harap upload bukti pembayaran', 'error');
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('payment_proof', paymentProof);
-                formData.append('provider_id', providerId);
-                formData.append('order_data', JSON.stringify({
-                    table_id: orderData.table_id,
-                    spiciness_level: orderData.spiciness_level,
-                    bowl_size: orderData.bowl_size,
-                    total_price: orderData.total_price,
-                    items: cart.map(item => ({
-                        id: item.id,
-                        quantity: item.quantity
-                    }))
-                }));
-
-                try {
-                    const response = await fetch('/confirm-payment', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        },
-                        body: formData
-                    });
-
-                    const result = await response.json();
-
-                    if (result.success) {
-                        const transactionData = {
-                            showModal: true,
-                            transactionId: result.transactionId,
-                            status: result.status,
-                            timestamp: Date.now()
-                        };
-
-                        sessionStorage.setItem('pendingOrderStatus', JSON.stringify(transactionData));
-                        showOrderModal(result.status, result.transactionId);
-                        closePaymentModal();
-                        clearCart();
-                    } else {
-                        throw new Error(result.message);
-                    }
-                } catch (error) {
-                    console.error('Payment error:', error);
-                    Swal.fire('Error!', error.message, 'error');
-                }
-            }
-
-            function checkTableStatus(tableId) {
-                const selectedOption = document.querySelector(`#tableNumber option[value="${tableId}"]`);
-                const statusMessage = document.getElementById('tableStatusMessage');
-
-                if (selectedOption) {
-                    if (selectedOption.dataset.status === 'occupied') {
-                        statusMessage.innerHTML = '<span class="text-red-500">⛔ Meja sedang digunakan!</span>';
-                        document.getElementById('tableNumber').value = '';
-                    } else {
-                        statusMessage.innerHTML = '<span class="text-green-500">✅ Meja tersedia</span>';
-                    }
-                }
-            }
-
-            async function refreshTableStatus() {
-                try {
-                    const response = await fetch('/tables');
-                    const tables = await response.json();
-
-                    const select = document.getElementById('tableNumber');
-                    const currentValue = select.value;
-
-                    select.innerHTML = '<option value="">Pilih Meja</option>';
-                    tables.forEach(table => {
-                        const option = new Option(
-                            `Meja ${table.number} - ${table.status === 'occupied' ? '(Terisi)' : '(Tersedia)'}`,
-                            table.id
-                        );
-                        option.dataset.status = table.status;
-                        option.disabled = table.status === 'occupied';
-                        select.appendChild(option);
-                    });
-
-                    select.value = currentValue;
-
-                    // Force re-check status jika nilai masih ada
-                    if (currentValue) checkTableStatus(currentValue);
-                } catch (error) {
-                    console.error('Gagal memperbarui status meja:', error);
-                }
-
-                setInterval(() => {
-                    if (!document.getElementById('checkoutModal').classList.contains('hidden')) {
-                        refreshTableStatus();
-                    }
-                }, 5000);
-            }
-
-            // Perbaikan fungsi showOrderModal
-            function showOrderModal(status, transactionId) {
-                showModal('orderConfirmationModal');
-                try {
-                    const modal = document.getElementById('orderConfirmationModal');
-                    if (!modal) return;
-
-                    // Gunakan class代替直接 memanipulasi style
-                    modal.classList.remove('hidden');
-                    modal.classList.add('show');
-
-                    if (!modal) {
-                        throw new Error('Modal element not found');
-                    }
-
-                    const statusElement = modal.querySelector('.status-text');
-                    const printBtn = modal.querySelector('#printButton');
-
-                    if (!statusElement || !printBtn) {
-                        throw new Error('Modal elements not found');
-                    }
-
-                    statusElement.textContent = status;
-                    statusElement.className = `font-bold ${status === 'proses' ? 'text-green-500' : 'text-yellow-500'}`;
-                    printBtn.style.display = status === 'proses' ? 'block' : 'none';
-                    printBtn.dataset.transactionId = transactionId;
-
-                    // Tampilkan modal dengan benar
-                    modal.classList.remove('hidden');
-                    modal.style.display = 'flex'; // Tambahkan ini untuk browser tertentu
-
-                    // Scroll ke atas untuk mobile
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
-                    });
-                } catch (error) {
-                    console.error('Error showing modal:', error);
-                }
-            }
-
-            function printOrder() {
-                try {
-                    const transactionId = document.getElementById('printButton').dataset.transactionId;
-                    if (!transactionId) throw new Error('ID Transaksi tidak valid');
-
-                    fetch(`/transaksi/print/${transactionId}`)
-                        .then(response => {
-                            if (!response.ok) throw new Error('Gagal memuat data cetakan');
-                            return response.text();
-                        })
-                        .then(html => {
-                            const printWindow = window.open('', '_blank');
-
-                            if (!printWindow || printWindow.closed) {
-                                throw new Error('Pop-up diblokir. Izinkan pop-up untuk mencetak');
-                            }
-
-                            printWindow.document.write(html);
-                            printWindow.document.close();
-
-                            setTimeout(() => {
-                                printWindow.print();
-                                printWindow.onafterprint = () => {
-                                    sessionStorage.removeItem('pendingOrderStatus');
-                                    printWindow.close();
-                                };
-                            }, 500);
-                        })
-                        .catch(error => {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal Mencetak',
-                                html: `Silakan coba lagi atau <a href="/transaksi/print/${transactionId}" 
-                                   target="_blank" class="text-blue-500">buka halaman cetak</a>`,
-                            });
-                        });
-                } catch (error) {
-                    console.error('Print error:', error);
-                    Swal.fire('Error!', error.message, 'error');
-                }
-            }
-
-            function showPersistedOrderModal(status, transactionId) {
+            window.closeOrderModal = function() {
                 const modal = document.getElementById('orderConfirmationModal');
-                if (!modal) return;
-
-                const statusElement = modal.querySelector('.status-text');
-                const printButton = document.getElementById('printButton');
-
-                if (statusElement && printButton) {
-                    statusElement.textContent = status;
-                    statusElement.className = `font-bold ${status === 'proses' ? 'text-green-500' : 'text-yellow-500'}`;
-                    printButton.style.display = status === 'proses' ? 'block' : 'none';
-                    printButton.dataset.transactionId = transactionId;
-
-                    // Tampilkan modal dengan menghapus kelas 'hidden'
-                    modal.classList.remove('hidden');
-                }
-            }
-
-            // function printOrder() {
-            //     const transactionId = document.getElementById('printButton').dataset.transactionId;
-            //     window.open(`/print/${transactionId}`, '_blank');
-            // }
-
-            function showModal(modalId) {
-                document.getElementById(modalId).classList.remove('hidden');
-                document.getElementById('mobileCartDropdown').classList.add('hidden');
-            }
-            function checkPendingOrder() {
-                try {
-                    const pendingOrderStr = sessionStorage.getItem('pendingOrderStatus');
-                    if (!pendingOrderStr) return;
-
-                    const pendingOrder = JSON.parse(pendingOrderStr);
-                    if (!pendingOrder || !pendingOrder.showModal) return;
-
-                    const oneHourAgo = Date.now() - 3600000; // 1 jam dalam milidetik
-                    if (pendingOrder.timestamp > oneHourAgo) {
-                        showPersistedOrderModal(pendingOrder.status, pendingOrder.transactionId);
-                    } else {
-                        sessionStorage.removeItem('pendingOrderStatus');
-                    }
-                } catch (error) {
-                    console.error('Error checking pending order:', error);
+                if (modal) {
+                    modal.classList.add('hidden');
                     sessionStorage.removeItem('pendingOrderStatus');
                 }
-            }
-            // Preview image upload
-            function previewImage(event) {
-                const input = event.target;
-                const container = document.getElementById('imagePreviewContainer');
-                const preview = document.getElementById('imagePreview');
+            };
 
-                if (input.files && input.files[0]) {
-                    const reader = new FileReader();
-
-                    reader.onload = function(e) {
-                        preview.src = e.target.result;
-                        container.classList.remove('hidden');
-                    }
-
-                    reader.readAsDataURL(input.files[0]);
+            // MOBILE
+            function toggleMobileCart() {
+                const dropdown = document.getElementById('mobileCartDropdown');
+                if (dropdown) {
+                    dropdown.classList.toggle('hidden');
+                } else {
+                    console.log('Elemen mobileCartDropdown tidak ditemukan');
                 }
-            }
-
-            // Show image in modal
-            function showImageModal(src) {
-                const modal = document.getElementById('imageModal');
-                const modalImage = document.getElementById('modalImage');
-                modalImage.src = src;
-                modal.classList.remove('hidden');
-            }
-
-            // Close image modal
-            function closeImageModal() {
-                document.getElementById('imageModal').classList.add('hidden');
-            }
-
-            // Remove image preview
-            function removeImagePreview() {
-                document.getElementById('paymentProof').value = '';
-                document.getElementById('imagePreviewContainer').classList.add('hidden');
-                document.getElementById('imagePreview').src = '';
             }
         </script>
     </body>

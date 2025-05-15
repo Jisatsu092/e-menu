@@ -6,7 +6,9 @@ use App\Models\Table;
 use App\Models\Toping;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+
 
 class TransactionDetailController extends Controller
 {
@@ -15,13 +17,15 @@ class TransactionDetailController extends Controller
      */
     public function index()
     {
-        $transactionDetail = TransactionDetail::latest()->paginate(10);
-        $transaction = Transaction::all();
-        $topings = Toping::all();
+        $userId = Auth::id();
+        $transactionDetail = TransactionDetail::whereHas('transaction', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->latest()->paginate(10);
+
         return view('page.transaction_detail.index', [
             'details' => $transactionDetail,
-            'transaction' => $transaction,
-            'toping' => $topings
+            'transaction' => Transaction::where('user_id', $userId)->get(),
+            'toping' => Toping::all()
         ]);
     }
 

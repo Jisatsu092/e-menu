@@ -8,9 +8,11 @@ use App\Models\Table;
 use App\Models\Toping;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class userInterfaceController extends Controller
 {
@@ -73,9 +75,35 @@ class userInterfaceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            $request->validate([
+                'number' => 'sometimes|required|max:255|unique:tables,number,' . $id,
+                'status' => 'required|in:available,occupied'
+            ]);
+
+            $table = Table::findOrFail($id);
+
+            if ($request->status === 'occupied' && $table->status === 'occupied') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meja sudah dipesan'
+                ], 400);
+            }
+
+            $table->update($request->only(['number', 'status']));
+
+            return response()->json([
+                'success' => true,
+                'table' => $table
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -88,9 +116,11 @@ class userInterfaceController extends Controller
 
     public function confirmPayment(Request $request)
     {
+        // Validasi input
         $request->validate([
             'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'provider_id' => 'required|exists:payment_providers,id',
+            'order_data' => 'required|json',
         ]);
 
         try {
@@ -99,7 +129,18 @@ class userInterfaceController extends Controller
             // Parse order data
             $orderData = json_decode($request->input('order_data'), true);
 
-            // Create transaction
+            // Validasi orderData
+            if (!isset($orderData['table_id'], $orderData['spiciness_level'], $orderData['bowl_size'], $orderData['total_price'], $orderData['items']) || empty($orderData['items'])) {
+                throw new \Exception('Data pesanan tidak lengkap');
+            }
+
+            // Verifikasi status meja
+            $table = Table::findOrFail($orderData['table_id']);
+            if ($table->status === 'occupied') {
+                throw new \Exception('Meja sudah dipesan');
+            }
+
+            // Buat transaksi
             $transaction = Transaction::create([
                 'user_id' => Auth::id(),
                 'table_id' => $orderData['table_id'],
@@ -110,13 +151,21 @@ class userInterfaceController extends Controller
                 'payment_provider_id' => $request->provider_id,
             ]);
 
-            // TAMBAHKAN INI: Update status meja
-            $table = Table::find($orderData['table_id']);
+            // Update status meja
             $table->update(['status' => 'occupied']);
 
-            // Create transaction details
+            // Proses detail transaksi dan update stok
             foreach ($orderData['items'] as $item) {
+                if (!isset($item['id'], $item['quantity']) || $item['quantity'] <= 0) {
+                    throw new \Exception('Data item tidak valid');
+                }
+
                 $toping = Toping::findOrFail($item['id']);
+                
+                // Verifikasi stok
+                if ($toping->stock < $item['quantity']) {
+                    throw new \Exception("Stok {$toping->name} tidak cukup");
+                }
 
                 TransactionDetail::create([
                     'transaction_id' => $transaction->id,
@@ -125,28 +174,31 @@ class userInterfaceController extends Controller
                     'subtotal' => $toping->price * $item['quantity'],
                 ]);
 
-                // Update stock
+                // Kurangi stok
                 $toping->decrement('stock', $item['quantity']);
             }
 
-            // Handle payment proof
-            if ($request->hasFile('payment_proof')) {
-                $path = $request->file('payment_proof')->store('payment_proofs', 'public');
-                $transaction->update(['payment_proof' => $path]);
-            }
+            // Simpan buk配bukti pembayaran
+            $path = $request->file('payment_proof')->store('payment_proofs', 'public');
+            $transaction->update(['payment_proof' => $path]);
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
                 'transactionId' => $transaction->id,
-                'status' => $transaction->status
-            ]);
+                'status' => $transaction->status,
+                'message' => 'Pembayaran berhasil dikonfirmasi, menunggu verifikasi'
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Payment confirmation failed: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'request_data' => $request->all()
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error processing payment: ' . $e->getMessage()
+                'message' => 'Gagal memproses pembayaran: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -168,4 +220,25 @@ class userInterfaceController extends Controller
             ], 500);
         }
     }
+    public function updateStatus(Request $request, $id)
+{
+    try {
+        $request->validate([
+            'status' => 'required|in:available,occupied'
+        ]);
+
+        $table = Table::findOrFail($id);
+        $table->update(['status' => $request->status]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status meja berhasil diupdate'
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal update status meja: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }

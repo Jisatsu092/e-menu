@@ -13,7 +13,7 @@ class TableController extends Controller
     {
         try {
             $search = request('search');
-            $entries = request('entries', 5);
+            $entries = request('entries', 10);
 
             $tables = Table::when($search, function ($query) use ($search) {
                 $query->where('number', 'like', "%$search%");
@@ -74,13 +74,19 @@ class TableController extends Controller
     {
         try {
             $request->validate([
-                'number' => 'sometimes|required|max:255|unique:tables,number,' . $id, // Tambahkan 'sometimes'
+                'number' => 'sometimes|required|max:255|unique:tables,number,' . $id,
                 'status' => 'required|in:available,occupied'
             ]);
 
             $table = Table::findOrFail($id);
 
-            // Update hanya field yang ada di request
+            if ($request->status === 'occupied' && $table->status === 'occupied') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meja sudah dipesan'
+                ], 400);
+            }
+
             $table->update($request->only(['number', 'status']));
 
             return response()->json([
