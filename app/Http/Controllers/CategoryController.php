@@ -16,7 +16,7 @@ class CategoryController extends Controller
 public function index()
 {
     try {
-        $entries = request()->input('entries', 5);
+        $entries = request()->input('entries', 10);
         $search = request()->input('search');
         
         // Gunakan variabel plural "$categories" untuk koleksi data

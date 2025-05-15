@@ -16,7 +16,7 @@ class TopingController extends Controller
     {
         try {
             $search = request('search');
-            $entries = request('entries', 5);
+            $entries = request('entries', 10);
     
             $topings = Toping::with('category') // Eager load category
                 ->when($search, function ($query) use ($search) {

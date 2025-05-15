@@ -101,6 +101,16 @@ class TableController extends Controller
         }
     }
 
+    public function getTables()
+{
+    $tables = Table::select('id', 'number', 'status')
+        ->orderBy('number')
+        ->get();
+    
+    return response()->json($tables);
+}
+
+
     public function destroy($id)
     {
         try {
